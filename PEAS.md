@@ -1,25 +1,24 @@
-# PEAS Specification — AI Repair Simulator
+# PEAS Specification — AI Repair Assistant
 
-**P — Performance Measure:** The agent is evaluated by:
-- Classification accuracy: % of player actions correctly labelled
-  Good / Mistake / Big Mistake on the 10 frozen test sequences (target ≥ 90%).
-- Safety: number of Big Mistakes a player makes per scenario (should decrease over repeated play).
-- Learning: number of hints used and extra steps compared with the optimal plan.
+**P — Performance Measure:**
+- Recognition accuracy: % of test photos where the object type is identified correctly (target ≥ 80%).
+- Diagnosis accuracy: % of test cases where the clarifying questions lead to the correct problem.
+- Efficiency: number of questions needed to reach a diagnosis (fewer is better).
+- Guidance quality: % of test users (3–5) who can complete the repair by following the steps.
+- Safety: unsafe situations are always flagged and referred to a professional (target 100%).
 
-  
-**E — Environment:** The agent operates in a virtual home repair environment with different repair scenarios, tools, objects, and possible states.
+**E — Environment:** Photos of broken household objects taken by users (different angles, lighting, backgrounds), the user's answers to questions, and a knowledge base of repair scenarios.
 
-**A — Actuators:** The agent provides feedback, explanations, hints, and evaluations of the user's actions. It can also suggest the next appropriate step.
+**A — Actuators:** Shows the recognised object and its confidence, asks clarifying questions, lists the tools and parts needed, displays the ordered repair steps, draws markers/arrows on a reference image, and gives safety warnings.
 
-**S — Sensors:** The agent receives information about the current scenario, the state of the repair task, and the action selected by the user.
-
+**S — Sensors:** The uploaded photo and the user's answers to the clarifying questions.
 
 ## Task environment properties
 | Property | Value | Why |
 |---|---|---|
-| Observable | Fully observable (simulation) / Partially observable (photo extension) | Inside a scenario the agent knows the complete repair state. With a real photo, the agent must first infer the problem from the image, so the initial state is not fully known. |
-| Deterministic | Deterministic | The same action in the same state always produces the same result. |
-| Episodic / Sequential | Sequential | Earlier actions affect later ones, e.g. drilling without scanning the wall first becomes a Big Mistake. Some steps can be done in any order (left or right screw first), so more than one correct plan is accepted. |
-| Static / Dynamic | Static | Nothing changes while the player is thinking. |
-| Discrete / Continuous | Discrete | Each scenario has a finite set of actions and states. |
-| Single / Multi-agent | Single-agent | Only the AI supervisor acts as an agent; the player is a human user, not a competing agent. |
+| Observable | Partially observable | A photo does not show everything (hidden screws, what is broken inside), so the agent must ask questions to complete its picture of the problem. |
+| Deterministic | Stochastic (recognition) / Deterministic (repair steps) | The classifier can be uncertain about a photo, but once the problem is known, the same action always has the same effect. |
+| Episodic / Sequential | Sequential | Each question depends on the previous answers, and repair steps must follow an order (e.g. scan the wall before drilling). |
+| Static / Dynamic | Static | The broken object does not change while the user answers. |
+| Discrete / Continuous | Mostly discrete | Object types, questions, tools and steps are finite sets; only the photo input (pixels) is continuous. |
+| Single / Multi-agent | Single-agent | Only the assistant acts as an agent; the user provides information and performs the repair. |
