@@ -1,53 +1,89 @@
 {
-  "_note": "DRAFT. Every tip must be checked against a reliable source before the final version. Electrical and gas content is safety information only: the assistant never guides electrical or gas repairs.",
+  "_note": "DRAFT. Every tip must be checked against a reliable source. Electrical and gas content is safety information only.",
   "tips": [
     {
       "id": "test_wires_safely",
       "category": "elektrike",
-      "kind": "siguri",
-      "title": "Si e kontrollon nëse një tel ka rrymë",
-      "body": "1) Fik siguresën (automatin) e qarkut te kutia e siguresave. 2) Kontrollo me tester pa kontakt (non-contact voltage tester), një laps që bën zë ose ndriçon kur ka tension; kushton rreth 5-15 €. 3) Provoje testerin më parë në një prizë që e di se punon, që të jesh i sigurt se testeri nuk është i prishur. 4) Nëse nuk ke tester ose nuk je i sigurt, mos e prek dhe thirr elektricistin.",
-      "source": "Rregulla të përgjithshme sigurie elektrike (për t'u verifikuar me burim zyrtar)"
+      "kind": "safety",
+      "title": {
+        "sq": "Si e kontrollon nëse një tel ka rrymë",
+        "mk": "Како да провериш дали жица е под напон"
+      },
+      "body": {
+        "sq": "1) Fik siguresën (automatin) e qarkut te kutia e siguresave. 2) Kontrollo me tester pa kontakt (non-contact voltage tester), një laps që bën zë ose ndriçon kur ka tension; kushton rreth 5-15 €. 3) Provoje testerin më parë në një prizë që e di se punon. 4) Nëse nuk ke tester ose nuk je i sigurt, mos e prek dhe thirr elektricistin.",
+        "mk": "1) Исклучи го осигурувачот на струјното коло во разводната табла. 2) Провери со бесконтактен тестер за напон (non-contact voltage tester), молив што пишти или свети кога има напон; чини околу 300-900 денари. 3) Прво пробај го тестерот на штекер за кој знаеш дека работи. 4) Ако немаш тестер или не си сигурен, не допирај и повикај електричар."
+      },
+      "source": "General electrical safety rules (to be verified against an official source)"
     },
     {
       "id": "myth_back_of_hand",
       "category": "elektrike",
-      "kind": "mit_i_rrezikshem",
-      "title": "Miti: \"Provoje telin me anën e pasme të dorës\"",
-      "body": "Ideja e mitit: rryma alternative (AC) i kontrakton muskujt. Muskujt që e mbyllin grushtin janë më të fortë, prandaj nëse e prek telin me pëllëmbë, dora mund ta shtrëngojë telin dhe nuk mund ta lëshosh. Me anën e pasme, i njëjti kontraktim e largon dorën. Pra nuk është rryma që të 'shtyn' dorën, janë muskujt e tu. PSE ËSHTË I RREZIKSHËM: rryma kalon prapë nëpër trup (p.sh. nga dora te këmbët ose te dora tjetër, përmes zemrës). Edhe një kontakt i shkurtër me 230 V mund të shkaktojë fibrilacion të zemrës, djegie ose rënie nga shkalla. Prandaj ky NUK është test. Përdor gjithmonë siguresën e fikur + testerin pa kontakt.",
-      "source": "Shpjegim edukativ; nuk rekomandohet si metodë"
+      "kind": "dangerous_myth",
+      "title": {
+        "sq": "Miti: \"Provoje telin me anën e pasme të dorës\"",
+        "mk": "Мит: „Провери ја жицата со надворешната страна на раката“"
+      },
+      "body": {
+        "sq": "Ideja e mitit: rryma alternative (AC) i kontrakton muskujt. Muskujt që e mbyllin grushtin janë më të fortë, prandaj nëse e prek telin me pëllëmbë, dora mund ta shtrëngojë telin dhe nuk mund ta lëshosh. Me anën e pasme, i njëjti kontraktim e largon dorën. Pra nuk është rryma që të 'shtyn' dorën, janë muskujt e tu. PSE ËSHTË I RREZIKSHËM: rryma kalon prapë nëpër trup (p.sh. nga dora te këmbët ose te dora tjetër, përmes zemrës). Edhe një kontakt i shkurtër me 230 V mund të shkaktojë fibrilacion të zemrës, djegie ose rënie nga shkalla. Prandaj ky NUK është test. Përdor gjithmonë siguresën e fikur + testerin pa kontakt.",
+        "mk": "Идејата на митот: наизменичната струја (AC) ги контрахира мускулите. Мускулите што ја стегаат тупаницата се посилни, па ако ја допреш жицата со дланката, раката може да ја стегне жицата и да не можеш да ја пуштиш. Со надворешната страна, истата контракција ја оддалечува раката. Значи не те „турка“ струјата, туку твоите мускули. ЗОШТО Е ОПАСНО: струјата сепак минува низ телото (на пр. од раката до нозете или до другата рака, преку срцето). Дури и краток допир со 230 V може да предизвика фибрилација на срцето, изгореници или паѓање од скала. Затоа ова НЕ е тест. Секогаш исклучи го осигурувачот + користи бесконтактен тестер."
+      },
+      "source": "Educational explanation; not recommended as a method"
     },
     {
       "id": "stripped_screw_rubber_band",
       "category": "mjete",
-      "kind": "truk",
-      "title": "Vidë me kokë të ngrënë",
-      "body": "Vendos një llastik të gjerë mes vidës dhe kaçavidës, shtyp fort dhe rrotullo ngadalë. Llastiku mbush kokën e ngrënë dhe të jep kapje.",
-      "source": "Për t'u verifikuar"
+      "kind": "trick",
+      "title": {
+        "sq": "Vidë me kokë të ngrënë",
+        "mk": "Шраф со изедена глава"
+      },
+      "body": {
+        "sq": "Vendos një llastik të gjerë mes vidës dhe kaçavidës, shtyp fort dhe rrotullo ngadalë. Llastiku mbush kokën e ngrënë dhe të jep kapje.",
+        "mk": "Стави широка гумичка меѓу шрафот и одвртката, притисни силно и врти полека. Гумичката ја пополнува изедената глава и дава зафат."
+      },
+      "source": "To be verified"
     },
     {
       "id": "loose_screw_hole_toothpick",
       "category": "mobilje",
-      "kind": "truk",
-      "title": "Vrima e vidës është zgjeruar në dru",
-      "body": "Fut 2-3 kruese dhëmbësh të lyera me ngjitës druri në vrimë, prit sa të thahet, prit tepricën dhe vidhose vidën përsëri.",
-      "source": "Për t'u verifikuar"
+      "kind": "trick",
+      "title": {
+        "sq": "Vrima e vidës është zgjeruar në dru",
+        "mk": "Дупката за шрафот се проширила во дрвото"
+      },
+      "body": {
+        "sq": "Fut 2-3 kruese dhëmbësh të lyera me ngjitës druri në vrimë, prit sa të thahet, prit tepricën dhe vidhose vidën përsëri.",
+        "mk": "Стави 2-3 чепкалки за заби намачкани со лепак за дрво во дупката, почекај да се исуши, исечи го вишокот и зашрафи го шрафот повторно."
+      },
+      "source": "To be verified"
     },
     {
       "id": "squeaky_hinge",
       "category": "brenda",
-      "kind": "truk",
-      "title": "Menteshë që kërcet",
-      "body": "Pastroje menteshën dhe hidh pak vaj lubrifikues (ose silikon spray), pastaj hape dhe mbylle derën disa herë.",
-      "source": "Për t'u verifikuar"
+      "kind": "trick",
+      "title": {
+        "sq": "Menteshë që kërcet",
+        "mk": "Шарка што крцка"
+      },
+      "body": {
+        "sq": "Pastroje menteshën dhe hidh pak vaj lubrifikues (ose silikon spray), pastaj hape dhe mbylle derën disa herë.",
+        "mk": "Исчисти ја шарката и стави малку масло за подмачкување (или силиконски спреј), потоа отвори ја и затвори ја вратата неколку пати."
+      },
+      "source": "To be verified"
     },
     {
       "id": "drill_dust_note",
       "category": "mjete",
-      "kind": "truk",
-      "title": "Pa pluhur kur shpon në mur",
-      "body": "Ngjit një letër të palosur (si xhep) poshtë vendit ku shpon; pluhuri bie aty. Para se të shposh, kontrollo murin me detektor për kabllo dhe tuba.",
-      "source": "Për t'u verifikuar"
+      "kind": "trick",
+      "title": {
+        "sq": "Pa pluhur kur shpon në mur",
+        "mk": "Без прав кога дупчиш ѕид"
+      },
+      "body": {
+        "sq": "Ngjit një letër të palosur (si xhep) poshtë vendit ku shpon; pluhuri bie aty. Para se të shposh, kontrollo murin me detektor për kabllo dhe tuba.",
+        "mk": "Залепи свиткана хартија (како џеб) под местото каде дупчиш; правта паѓа таму. Пред да дупчиш, провери го ѕидот со детектор за кабли и цевки."
+      },
+      "source": "To be verified"
     }
   ]
 }

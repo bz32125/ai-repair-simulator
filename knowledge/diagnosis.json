@@ -1,84 +1,309 @@
 {
-  "_note": "Decision trees for clarifying questions. A node is either a question (with answers -> next node) or a leaf: {scenario: id} or {refer: message}. DRAFT.",
+  "_note": "Decision trees for clarifying questions, in Albanian (sq) and Macedonian (mk). A node is a question, a leaf {scenario: id}, or a leaf {refer: message}. DRAFT.",
   "objects": {
     "door_handle": {
-      "name": "Dorezë dere",
+      "name": {
+        "sq": "Dorezë dere",
+        "mk": "Квака на врата"
+      },
       "keywords": [
         "dorez",
-        "doreza",
         "dorëz",
-        "handle",
         "bravë",
-        "brave"
+        "brave",
+        "handle",
+        "квак",
+        "брав"
       ],
       "tree": {
-        "q": "Si sillet doreza?",
-        "answers": {
-          "Lëviz / varet poshtë, por është në vend": {
-            "scenario": "door_handle"
+        "q": {
+          "sq": "Si sillet doreza?",
+          "mk": "Како се однесува кваката?"
+        },
+        "answers": [
+          {
+            "text": {
+              "sq": "Lëviz / varet poshtë, por është në vend",
+              "mk": "Се клати / виси надолу, но е на место"
+            },
+            "next": {
+              "scenario": "door_handle"
+            }
           },
-          "Ka rënë fare ose është thyer": {
-            "refer": "Doreza e thyer zakonisht ndërrohet. Merr një dorezë të re me të njëjtën distancë vidash (shih udhëzimin e prodhuesit)."
-          },
-          "Brava nuk mbyllet / çelësi ngec": {
-            "refer": "Problemi është te brava (cilindri). Kjo nuk është ende në asistent; thirr bravëndreqësin."
-          }
-        }
-      }
-    },
-    "cabinet_door": {
-      "name": "Derë dollapi",
-      "keywords": [
-        "dollap",
-        "kuzhin",
-        "menteshë",
-        "mentesh",
-        "cabinet"
-      ],
-      "tree": {
-        "q": "Çfarë problemi ka dera e dollapit?",
-        "answers": {
-          "Varet / nuk mbyllet drejt": {
-            "q": "Menteshat janë të fshehura brenda dollapit (lloji evropian)?",
-            "answers": {
-              "Po": {
-                "scenario": "cabinet_door"
-              },
-              "Jo / nuk e di": {
-                "refer": "Ngarko një foto nga brenda dollapit që të shohim menteshat. Ky lloj menteshe nuk është ende në asistent."
+          {
+            "text": {
+              "sq": "Ka rënë fare ose është thyer",
+              "mk": "Целосно паднала или е скршена"
+            },
+            "next": {
+              "refer": {
+                "sq": "Doreza e thyer zakonisht ndërrohet. Merr një dorezë të re me të njëjtën distancë vidash.",
+                "mk": "Скршената квака обично се заменува. Купи нова квака со исто растојание меѓу шрафовите."
               }
             }
           },
-          "Menteshja është shkëputur nga druri": {
-            "refer": "Druri rreth vidave është dëmtuar. Shih truket: 'Vrima e vidës është zgjeruar në dru'."
+          {
+            "text": {
+              "sq": "Brava nuk mbyllet / çelësi ngec",
+              "mk": "Бравата не се заклучува / клучот заглавува"
+            },
+            "next": {
+              "refer": {
+                "sq": "Problemi është te cilindri i bravës. Ky rast nuk është ende në asistent; thirr bravëndreqësin.",
+                "mk": "Проблемот е во цилиндарот на бравата. Овој случај сè уште не е во асистентот; повикај бравар."
+              }
+            }
           }
-        }
+        ]
+      }
+    },
+    "cabinet_door": {
+      "name": {
+        "sq": "Derë dollapi",
+        "mk": "Врата на шкаф"
+      },
+      "keywords": [
+        "dollap",
+        "kuzhin",
+        "mentesh",
+        "cabinet",
+        "шкаф",
+        "шарк",
+        "кујн"
+      ],
+      "tree": {
+        "q": {
+          "sq": "Çfarë problemi ka dera e dollapit?",
+          "mk": "Каков проблем има вратата на шкафот?"
+        },
+        "answers": [
+          {
+            "text": {
+              "sq": "Varet / nuk mbyllet drejt",
+              "mk": "Виси / не се затвора право"
+            },
+            "next": {
+              "q": {
+                "sq": "Menteshat janë të fshehura brenda dollapit (lloji evropian)?",
+                "mk": "Дали шарките се скриени внатре во шкафот (европски тип)?"
+              },
+              "answers": [
+                {
+                  "text": {
+                    "sq": "Po",
+                    "mk": "Да"
+                  },
+                  "next": {
+                    "scenario": "cabinet_door"
+                  }
+                },
+                {
+                  "text": {
+                    "sq": "Jo / nuk e di",
+                    "mk": "Не / не знам"
+                  },
+                  "next": {
+                    "refer": {
+                      "sq": "Ngarko një foto nga brenda dollapit që të shohim menteshat. Ky lloj menteshe nuk është ende në asistent.",
+                      "mk": "Прикачи фотографија од внатрешноста на шкафот за да ги видиме шарките. Овој тип шарка сè уште не е во асистентот."
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "text": {
+              "sq": "Menteshja është shkëputur nga druri",
+              "mk": "Шарката се откинала од дрвото"
+            },
+            "next": {
+              "refer": {
+                "sq": "Druri rreth vidave është dëmtuar. Shih truket: 'Vrima e vidës është zgjeruar në dru'.",
+                "mk": "Дрвото околу шрафовите е оштетено. Види го трикот: „Дупката за шрафот се проширила во дрвото“."
+              }
+            }
+          }
+        ]
+      }
+    },
+    "chair_table": {
+      "name": {
+        "sq": "Karrige / tavolinë",
+        "mk": "Стол / маса"
+      },
+      "keywords": [
+        "karrig",
+        "tavolin",
+        "lëkund",
+        "lekund",
+        "këmb",
+        "kemb",
+        "chair",
+        "table",
+        "стол",
+        "маса",
+        "масата",
+        "клат",
+        "ногар"
+      ],
+      "tree": {
+        "q": {
+          "sq": "Si lidhet këmba që lëkundet?",
+          "mk": "Како е прицврстена ногарката што се клати?"
+        },
+        "answers": [
+          {
+            "text": {
+              "sq": "Me vida / bulona (mobilje e montueshme)",
+              "mk": "Со завртки (мебел за монтирање)"
+            },
+            "next": {
+              "scenario": "chair_bolts"
+            }
+          },
+          {
+            "text": {
+              "sq": "E ngjitur, dru i ngurtë, pa vida",
+              "mk": "Залепена, масивно дрво, без завртки"
+            },
+            "next": {
+              "scenario": "chair_glue"
+            }
+          },
+          {
+            "text": {
+              "sq": "Këmba është çarë ose thyer",
+              "mk": "Ногарката е напукната или скршена"
+            },
+            "next": {
+              "refer": {
+                "sq": "Këmba e thyer duhet ndërruar ose riparuar nga një zdrukthëtar.",
+                "mk": "Скршената ногарка треба да се замени или да ја поправи столар."
+              }
+            }
+          }
+        ]
+      }
+    },
+    "drawer": {
+      "name": {
+        "sq": "Sirtar",
+        "mk": "Фиока"
+      },
+      "keywords": [
+        "sirtar",
+        "drawer",
+        "фиок",
+        "лизгач"
+      ],
+      "tree": {
+        "q": {
+          "sq": "Çfarë ndodh me sirtarin?",
+          "mk": "Што се случува со фиоката?"
+        },
+        "answers": [
+          {
+            "text": {
+              "sq": "Ka dalë nga shinat / rri shtrembër",
+              "mk": "Излегла од шините / стои накривено"
+            },
+            "next": {
+              "q": {
+                "sq": "Shinat janë të plota, pa pjesë të thyera?",
+                "mk": "Дали лизгачите се цели, без скршени делови?"
+              },
+              "answers": [
+                {
+                  "text": {
+                    "sq": "Po",
+                    "mk": "Да"
+                  },
+                  "next": {
+                    "scenario": "drawer_runners"
+                  }
+                },
+                {
+                  "text": {
+                    "sq": "Jo, një shinë është thyer",
+                    "mk": "Не, еден лизгач е скршен"
+                  },
+                  "next": {
+                    "refer": {
+                      "sq": "Shinat e thyera ndërrohen në çift. Merr shina me të njëjtën gjatësi.",
+                      "mk": "Скршените лизгачи се менуваат во пар. Купи лизгачи со иста должина."
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "text": {
+              "sq": "Doreza e sirtarit lëviz",
+              "mk": "Рачката на фиоката се клати"
+            },
+            "next": {
+              "refer": {
+                "sq": "Shtrëngo vidën nga brenda sirtarit me kaçavidë.",
+                "mk": "Затегни го шрафот од внатрешната страна на фиоката со одвртка."
+              }
+            }
+          }
+        ]
       }
     },
     "wall_shelf": {
-      "name": "Raft në mur",
+      "name": {
+        "sq": "Raft në mur",
+        "mk": "Полица на ѕид"
+      },
       "keywords": [
         "raft",
-        "mur",
         "shelf",
         "shpoj",
-        "shpuese"
+        "shpues",
+        "полиц",
+        "дупч",
+        "ѕид"
       ],
       "tree": {
-        "q": "Muri është beton ose tullë?",
-        "answers": {
-          "Po": {
-            "scenario": "wall_shelf"
+        "q": {
+          "sq": "Muri është beton ose tullë?",
+          "mk": "Дали ѕидот е од бетон или тула?"
+        },
+        "answers": [
+          {
+            "text": {
+              "sq": "Po",
+              "mk": "Да"
+            },
+            "next": {
+              "scenario": "wall_shelf"
+            }
           },
-          "Jo, është gips (rigips)": {
-            "refer": "Për gips duhen tipla të veçanta. Ky rast nuk është ende në asistent."
+          {
+            "text": {
+              "sq": "Jo, është gips (rigips)",
+              "mk": "Не, гипс-картон (кнауф)"
+            },
+            "next": {
+              "refer": {
+                "sq": "Për gips duhen tipla të veçanta. Ky rast nuk është ende në asistent.",
+                "mk": "За гипс-картон се потребни посебни типли. Овој случај сè уште не е во асистентот."
+              }
+            }
           }
-        }
+        ]
       }
     }
   },
   "unsafe_keywords": [
     "rrym",
+    "tela",
+    "teli",
+    "telin",
+    "telat",
     "prizë",
     "prize",
     "kabëll",
@@ -90,10 +315,19 @@
     "llamb",
     "elektrik",
     "volt",
-    "tela",
-    "teli",
-    "telin",
-    "telat"
+    "струј",
+    "жиц",
+    "штекер",
+    "приклучн",
+    "осигурувач",
+    "гас",
+    "бојлер",
+    "сијалиц",
+    "електр",
+    "волт"
   ],
-  "unsafe_message": "Kjo duket si punë me rrymë ose gaz. Asistenti nuk jep udhëzime për këto riparime, sepse një gabim mund të jetë vdekjeprurës. Fik siguresën ose valvulën e gazit dhe thirr një profesionist. Shih seksionin 'Elektrike' për këshilla sigurie."
+  "unsafe_message": {
+    "sq": "Kjo duket si punë me rrymë ose gaz. Asistenti nuk jep udhëzime për këto riparime, sepse një gabim mund të jetë vdekjeprurës. Fik siguresën ose valvulën e gazit dhe thirr një profesionist. Shih seksionin 'Elektrike' për këshilla sigurie.",
+    "mk": "Ова изгледа како работа со струја или гас. Асистентот не дава упатства за вакви поправки, бидејќи грешка може да биде смртоносна. Исклучи го осигурувачот или вентилот за гас и повикај професионалец. Види го делот „Електрика“ за совети за безбедност."
+  }
 }

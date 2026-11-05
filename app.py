@@ -1,9 +1,9 @@
-"""AI Repair Assistant: Streamlit prototype (skeleton).
+"""AI Repair Assistant: Streamlit prototype, in Albanian (sq) and Macedonian (mk).
 
 Run:  pip install -r requirements.txt && streamlit run app.py
 
 Pipeline: photo + text -> safety gate (rules) -> object recognition
-(image classifier, not trained yet; keyword baseline on the text for now)
+(image classifier when trained, TF-IDF on the text otherwise)
 -> decision tree (clarifying questions as buttons) -> tools (rules)
 -> repair steps (A* planner, BFS shown for comparison).
 """
@@ -13,10 +13,45 @@ from pathlib import Path
 
 import streamlit as st
 
+import photo_classifier
 import planner
+import text_recognizer
 
 ROOT = Path(__file__).parent
 KB = ROOT / "knowledge"
+
+UI = {
+    "sq": {
+        "lang": "Gjuha", "subtitle": "Ndihmë hap pas hapi për riparime të thjeshta në shtëpi. Prototip.",
+        "tabs": ["Asistenti", "Tips & Tricks", "Kategoritë", "Mjetet"],
+        "describe": "Përshkruaje problemin dhe, nëse mundesh, ngarko një foto.",
+        "photo": "Foto (opsionale)", "placeholder": "P.sh. 'Doreza e derës lëviz dhe varet poshtë'",
+        "restart": "Fillo nga e para", "other": "Problem tjetër",
+        "unknown": "Nuk e njoha objektin. Cili është?", "object": "Objekti",
+        "tools": "Mjetet që të duhen:", "steps": "Hapat:", "dont": "Mos bëj:",
+        "why": "Pse këta hapa? (si mendon AI)",
+        "why_text": "Njohja e tekstit (TF-IDF) zgjodhi **{obj}** me ngjashmëri {score:.2f}. Pema e vendimit zgjodhi skenarin `{sid}` nga përgjigjet e tua. Planner-i A* gjeti {n} hapa duke hapur {na} gjendje; BFS do të hapte {nb}. Hapat e rrezikshëm përjashtohen nga plani.",
+        "kinds": {"safety": "🛡️ Siguri", "dangerous_myth": "⚠️ Mit i rrezikshëm", "trick": "💡 Truk"},
+        "myth": "Mos e provo këtë. Shpjegohet vetëm që ta kuptosh pse është i rrezikshëm.",
+        "source": "Burimi", "mode_assistant": "Asistenti jep hapa riparimi.", "mode_info": "Vetëm këshilla dhe informacion.",
+        "search": "Kërko mjet", "done": "Bravo! Riparimi përfundoi. ✅",
+    },
+    "mk": {
+        "lang": "Јазик", "subtitle": "Помош чекор по чекор за едноставни поправки во домот. Прототип.",
+        "tabs": ["Асистент", "Совети и трикови", "Категории", "Алати"],
+        "describe": "Опиши го проблемот и, ако можеш, прикачи фотографија.",
+        "photo": "Фотографија (опционално)", "placeholder": "На пр. „Кваката на вратата се клати и виси надолу“",
+        "restart": "Почни одново", "other": "Друг проблем",
+        "unknown": "Не го препознав предметот. Кој е?", "object": "Предмет",
+        "tools": "Потребни алати:", "steps": "Чекори:", "dont": "Не прави:",
+        "why": "Зошто овие чекори? (како размислува AI)",
+        "why_text": "Препознавањето текст (TF-IDF) избра **{obj}** со сличност {score:.2f}. Дрвото на одлучување го избра сценариото `{sid}` според твоите одговори. Планерот A* најде {n} чекори отворајќи {na} состојби; BFS би отворил {nb}. Опасните чекори се исклучени од планот.",
+        "kinds": {"safety": "🛡️ Безбедност", "dangerous_myth": "⚠️ Опасен мит", "trick": "💡 Трик"},
+        "myth": "Не го пробувај ова. Се објаснува само за да разбереш зошто е опасно.",
+        "source": "Извор", "mode_assistant": "Асистентот дава чекори за поправка.", "mode_info": "Само совети и информации.",
+        "search": "Барај алат", "done": "Браво! Поправката е завршена. ✅",
+    },
+}
 
 
 @st.cache_data
@@ -24,52 +59,54 @@ def load(name):
     return json.loads((KB / name).read_text(encoding="utf-8"))
 
 
+@st.cache_resource
+def recognizer():
+    return text_recognizer.build()
+
+
 DIAG = load("diagnosis.json")
 TIPS = load("tips.json")["tips"]
-TOOLS = load("tools.json")["tools"]
+TOOLS = {t["id"]: t for t in load("tools.json")["tools"]}
 CATS = load("categories.json")["categories"]
 SCENARIOS = planner.load_scenarios()
 
 
-def tokens(text):
-    return re.findall(r"\w+", text.lower())
-
-
 def is_unsafe(text):
-    """Safety gate: rule-based check before any AI step."""
-    return any(t.startswith(k) for t in tokens(text) for k in DIAG["unsafe_keywords"])
-
-
-def guess_object(text):
-    """Baseline text recognizer: keyword score per object (to be replaced by TF-IDF)."""
-    scores = {}
-    for oid, obj in DIAG["objects"].items():
-        scores[oid] = sum(1 for t in tokens(text) for k in obj["keywords"] if t.startswith(k))
-    best = max(scores, key=scores.get)
-    return (best if scores[best] > 0 else None), scores
+    """Safety gate: rule-based check that runs before any other AI step."""
+    words = re.findall(r"\w+", text.lower())
+    return any(w.startswith(k) for w in words for k in DIAG["unsafe_keywords"])
 
 
 def classify_photo(photo):
-    """Placeholder for the image classifier (transfer learning, Week 5-6)."""
-    return None, 0.0
+    """Image classifier (train_classifier.py); (None, 0.0) until a model is trained."""
+    obj, conf = photo_classifier.predict(photo)
+    return (obj, conf) if obj in DIAG["objects"] else (None, 0.0)
 
 
-def tools_for(plan):
-    """Rule: every 'get_*' action in the plan is a tool the user needs."""
-    return [a["label"].replace("Get ", "").replace("a ", "", 1) for a in plan if a["id"].startswith("get_")]
+def field(item, name, lang):
+    """Localized field of a scenario/action, falling back to English."""
+    return item.get(f"{name}_{lang}") or item.get(name, "")
+
+
+def tools_for(plan, lang):
+    """Rule: the tools of every action in the plan, without duplicates."""
+    ids = list(dict.fromkeys(t for a in plan for t in a.get("tools", [])))
+    return [TOOLS[i]["name"][lang] + f" ({TOOLS[i]['en']})" for i in ids if i in TOOLS]
 
 
 def reset():
-    for k in ("stage", "obj", "node", "path", "text"):
+    for k in ("stage", "obj", "node", "path", "text", "score"):
         st.session_state.pop(k, None)
 
 
 # ---------------------------------------------------------------- UI
 st.set_page_config(page_title="AI Repair Assistant", page_icon="🔧")
+lang = st.sidebar.radio("Gjuha / Јазик", ["sq", "mk"], format_func=lambda x: {"sq": "Shqip", "mk": "Македонски"}[x])
+U = UI[lang]
 st.title("🔧 AI Repair Assistant")
-st.caption("Ndihmë hap pas hapi për riparime të thjeshta në shtëpi, në shqip. Prototip.")
+st.caption(U["subtitle"])
 
-tab_ai, tab_tips, tab_cats, tab_tools = st.tabs(["Asistenti", "Tips & Tricks", "Kategoritë", "Mjetet"])
+tab_ai, tab_tips, tab_cats, tab_tools = st.tabs(U["tabs"])
 
 with tab_ai:
     ss = st.session_state
@@ -77,20 +114,20 @@ with tab_ai:
 
     if ss.stage == "describe":
         with st.chat_message("assistant"):
-            st.write("Përshkruaje problemin dhe, nëse mundesh, ngarko një foto.")
-        photo = st.file_uploader("Foto (opsionale)", type=["jpg", "jpeg", "png"])
-        text = st.chat_input("P.sh. 'Doreza e derës lëviz dhe varet poshtë'")
+            st.write(U["describe"])
+        photo = st.file_uploader(U["photo"], type=["jpg", "jpeg", "png"])
+        text = st.chat_input(U["placeholder"])
         if text:
             ss.text = text
             if is_unsafe(text):
                 ss.stage = "unsafe"
             else:
-                obj, _ = classify_photo(photo)
+                obj, conf = classify_photo(photo)
                 if obj is None:
-                    obj, _ = guess_object(text)
-                ss.obj = obj
+                    obj, scores = recognizer().predict(text)
+                    conf = scores.get(obj, 0.0) if obj else 0.0
+                ss.obj, ss.score, ss.path = obj, conf, []
                 ss.node = DIAG["objects"][obj]["tree"] if obj else None
-                ss.path = []
                 ss.stage = "diagnose" if obj else "pick"
             st.rerun()
 
@@ -100,77 +137,76 @@ with tab_ai:
 
     if ss.stage == "unsafe":
         with st.chat_message("assistant"):
-            st.error(DIAG["unsafe_message"])
-        st.button("Fillo nga e para", on_click=reset)
+            st.error(DIAG["unsafe_message"][lang])
+        st.button(U["restart"], on_click=reset)
 
     elif ss.stage == "pick":
         with st.chat_message("assistant"):
-            st.write("Nuk e njoha objektin. Cili është?")
+            st.write(U["unknown"])
             for oid, obj in DIAG["objects"].items():
-                if st.button(obj["name"], key=f"pick_{oid}"):
-                    ss.obj, ss.node, ss.path, ss.stage = oid, obj["tree"], [], "diagnose"
+                if st.button(obj["name"][lang], key=f"pick_{oid}"):
+                    ss.obj, ss.node, ss.path, ss.score, ss.stage = oid, obj["tree"], [], 0.0, "diagnose"
                     st.rerun()
 
     elif ss.stage == "diagnose":
         obj = DIAG["objects"][ss.obj]
         with st.chat_message("assistant"):
-            st.write(f"Objekti: **{obj['name']}**")
+            st.write(f"{U['object']}: **{obj['name'][lang]}**")
             for q, a in ss.path:
-                st.write(f"• {q} → *{a}*")
+                st.write(f"• {q[lang]} → *{a[lang]}*")
             node = ss.node
             if "q" in node:
-                st.write(f"**{node['q']}**")
-                for ans, nxt in node["answers"].items():
-                    if st.button(ans, key=f"ans_{len(ss.path)}_{ans}"):
-                        ss.path.append((node["q"], ans))
-                        ss.node = nxt
+                st.write(f"**{node['q'][lang]}**")
+                for i, ans in enumerate(node["answers"]):
+                    if st.button(ans["text"][lang], key=f"ans_{len(ss.path)}_{i}"):
+                        ss.path.append((node["q"], ans["text"]))
+                        ss.node = ans["next"]
                         st.rerun()
             elif "refer" in node:
-                st.info(node["refer"])
+                st.info(node["refer"][lang])
             else:
                 sc = SCENARIOS[node["scenario"]]
                 plan, n_astar = planner.astar(sc)
                 _, n_bfs = planner.bfs(sc)
-                st.success(sc["title"])
-                st.write("**Mjetet që të duhen:**")
-                for t in tools_for(plan):
+                st.success(field(sc, "title", lang))
+                st.write(U["tools"])
+                for t in tools_for(plan, lang):
                     st.write(f"- {t}")
-                st.write("**Hapat:**")
-                for i, a in enumerate(plan, 1):
-                    st.checkbox(f"{i}. {a['label']}", key=f"step_{sc['id']}_{i}")
+                st.write(U["steps"])
+                done = [st.checkbox(f"{i}. {field(a, 'label', lang)}", key=f"step_{sc['id']}_{i}")
+                        for i, a in enumerate(plan, 1)]
+                if all(done):
+                    st.balloons()
+                    st.success(U["done"])
                 warnings = [a for a in sc["actions"] if a.get("safety_msg")]
                 if warnings:
-                    st.write("**Mos bëj:**")
+                    st.write(U["dont"])
                     for a in warnings:
-                        st.warning(f"{a['label']}: {a['safety_msg']}")
-                with st.expander("Pse këta hapa? (si mendon AI)"):
-                    st.write(
-                        f"Pema e vendimit zgjodhi skenarin `{sc['id']}` nga përgjigjet e tua. "
-                        f"Planner-i A* gjeti {len(plan)} hapa duke hapur {n_astar} gjendje; "
-                        f"BFS do të hapte {n_bfs}. Hapat e rrezikshëm (safety) përjashtohen nga plani."
-                    )
-        st.button("Problem tjetër", on_click=reset)
+                        st.warning(f"{field(a, 'label', lang)}: {field(a, 'safety_msg', lang)}")
+                with st.expander(U["why"]):
+                    st.write(U["why_text"].format(obj=obj["name"][lang], score=ss.score, sid=sc["id"],
+                                                  n=len(plan), na=n_astar, nb=n_bfs))
+        st.button(U["other"], on_click=reset)
 
 with tab_tips:
-    kinds = {"siguri": "🛡️ Siguri", "mit_i_rrezikshem": "⚠️ Mit i rrezikshëm", "truk": "💡 Truk"}
     for tip in TIPS:
-        with st.expander(f"{kinds.get(tip['kind'], '')} · {tip['title']}"):
-            if tip["kind"] == "mit_i_rrezikshem":
-                st.error("Mos e provo këtë. Shpjegohet vetëm që ta kuptosh pse është i rrezikshëm.")
-            st.write(tip["body"])
-            st.caption(f"Burimi: {tip['source']}")
+        with st.expander(f"{U['kinds'].get(tip['kind'], '')} · {tip['title'][lang]}"):
+            if tip["kind"] == "dangerous_myth":
+                st.error(U["myth"])
+            st.write(tip["body"][lang])
+            st.caption(f"{U['source']}: {tip['source']}")
 
 with tab_cats:
     for c in CATS:
-        st.subheader(c["name"])
+        st.subheader(c["name"][lang])
         if c.get("warning"):
-            st.warning(c["warning"])
-        st.write("Asistenti jep hapa riparimi." if c["mode"] == "assistant" else "Vetëm këshilla dhe informacion.")
+            st.warning(c["warning"][lang])
+        st.write(U["mode_assistant"] if c["mode"] == "assistant" else U["mode_info"])
         for tip in (t for t in TIPS if t["category"] == c["id"]):
-            st.write(f"- {tip['title']}")
+            st.write(f"- {tip['title'][lang]}")
 
 with tab_tools:
-    q = st.text_input("Kërko mjet (shqip ose anglisht)")
-    for t in TOOLS:
-        if not q or q.lower() in (t["sq"] + t["en"]).lower():
-            st.write(f"**{t['sq']}** ({t['en']}): {t['use']}")
+    q = st.text_input(U["search"]).lower()
+    for t in TOOLS.values():
+        if not q or q in (t["name"]["sq"] + t["name"]["mk"] + t["en"]).lower():
+            st.write(f"**{t['name'][lang]}** ({t['en']}): {t['use'][lang]}")
