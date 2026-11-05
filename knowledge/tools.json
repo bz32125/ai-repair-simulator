@@ -1,0 +1,18 @@
+{
+  "_note": "Tool glossary, Albanian name + English name. Add a photo per tool later (images/tools/<id>.jpg).",
+  "tools": [
+    {"id": "screwdriver_phillips", "sq": "Kaçavidë kryq", "en": "Phillips screwdriver", "use": "Vida me kokë në formë kryqi (+)."},
+    {"id": "screwdriver_flat", "sq": "Kaçavidë e sheshtë", "en": "Flat-head screwdriver", "use": "Vida me një vijë (-); edhe për të hequr kapakë të vegjël."},
+    {"id": "allen_key", "sq": "Çelës gjashtëkëndësh (Imbus)", "en": "Allen key / hex key", "use": "Vidat e mobiljeve të montueshme (p.sh. karrige, tavolina)."},
+    {"id": "hammer", "sq": "Çekiç", "en": "Hammer", "use": "Gozhdë dhe kunja. Asnjëherë për doreza, mentesha ose mekanizma."},
+    {"id": "drill", "sq": "Shpuese / Dërrapanë", "en": "Drill", "use": "Vrima në dru, metal ose mur (me majën e duhur)."},
+    {"id": "wall_plug", "sq": "Tipla", "en": "Wall plug / anchor", "use": "Mban vidën në mur betoni ose tulle."},
+    {"id": "spirit_level", "sq": "Nivelë (libelë)", "en": "Spirit level", "use": "Kontrollon nëse diçka është drejt (horizontal/vertikal)."},
+    {"id": "tape_measure", "sq": "Metër (shirit matës)", "en": "Tape measure", "use": "Matje gjatësish."},
+    {"id": "pliers", "sq": "Pinca", "en": "Pliers", "use": "Kap, përdredh dhe pret tela të hollë."},
+    {"id": "wood_glue", "sq": "Ngjitës druri", "en": "Wood glue", "use": "Ngjit nyjet e drurit (p.sh. këmbët e karriges)."},
+    {"id": "clamp", "sq": "Shtrëngues (morsetë dore)", "en": "Clamp", "use": "Mban pjesët e shtrënguara sa thahet ngjitësi."},
+    {"id": "detector", "sq": "Detektor kabllosh dhe tubash", "en": "Wall scanner / stud finder", "use": "Gjen kabllo dhe tuba në mur para se të shposh."},
+    {"id": "voltage_tester", "sq": "Tester tensioni pa kontakt", "en": "Non-contact voltage tester", "use": "Tregon nëse ka tension pa e prekur telin. Mjeti i sigurt për kontrollin e rrymës."}
+  ]
+}

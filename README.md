@@ -22,7 +22,18 @@ Photo → Image classifier → Decision tree (questions) → Problem state → P
 - Text + image interface in Python; markers drawn on prepared reference images (not yet on the user's photo)
 - Unsafe repairs (electrical, gas, structural) are out of scope: the assistant tells the user to call a professional
 
+## Run the prototype
+```
+pip install -r requirements.txt
+streamlit run app.py
+python planner.py   # BFS vs A* on every scenario
+```
+
 ## Files
+- `app.py` — Streamlit prototype: Assistant (chat), Tips & Tricks, Categories, Tools
+- `planner.py` — BFS and A* planner over the scenarios, plus a step checker
+- `knowledge/` — decision trees and safety rules (`diagnosis.json`), tips, tools glossary, categories
+- `ROADMAP.md` — differences from iFixit FixBot and the plan to the final result
 - `scenarios.json` — repair knowledge base: actions, preconditions, effects, safety rules (draft, being verified)
 - `PEAS.md` — agent and task-environment specification
 - `DECISIONS.md` — decision log

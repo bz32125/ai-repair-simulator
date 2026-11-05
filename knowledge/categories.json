@@ -1,0 +1,11 @@
+{
+  "_note": "Sections of the app. 'assistant' = the AI assistant can plan repairs here. 'info' = tips and safety information only, no repair guidance.",
+  "categories": [
+    {"id": "mobilje", "name": "Mobilje (dollap, sirtar, karrige, tavolinë)", "mode": "assistant"},
+    {"id": "brenda", "name": "Brenda shtëpisë (dyer, doreza, rafte)", "mode": "assistant"},
+    {"id": "jashte", "name": "Jashtë (oborr, gardh, ballkon)", "mode": "info"},
+    {"id": "elektrike", "name": "Elektrike", "mode": "info", "warning": "Asistenti nuk jep udhëzime riparimi për rrymë. Vetëm këshilla sigurie; për punë thirr elektricistin."},
+    {"id": "elektronike", "name": "Elektronike dhe teknologji", "mode": "info", "warning": "Vetëm këshilla bazë (p.sh. rinisja, pastrimi). Mos hap pajisje me bateri të fryra ose që lidhen në rrymë."},
+    {"id": "mjete", "name": "Mjetet e punës", "mode": "info"}
+  ]
+}

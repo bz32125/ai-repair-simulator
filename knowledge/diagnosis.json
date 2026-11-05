@@ -1,0 +1,99 @@
+{
+  "_note": "Decision trees for clarifying questions. A node is either a question (with answers -> next node) or a leaf: {scenario: id} or {refer: message}. DRAFT.",
+  "objects": {
+    "door_handle": {
+      "name": "Dorezë dere",
+      "keywords": [
+        "dorez",
+        "doreza",
+        "dorëz",
+        "handle",
+        "bravë",
+        "brave"
+      ],
+      "tree": {
+        "q": "Si sillet doreza?",
+        "answers": {
+          "Lëviz / varet poshtë, por është në vend": {
+            "scenario": "door_handle"
+          },
+          "Ka rënë fare ose është thyer": {
+            "refer": "Doreza e thyer zakonisht ndërrohet. Merr një dorezë të re me të njëjtën distancë vidash (shih udhëzimin e prodhuesit)."
+          },
+          "Brava nuk mbyllet / çelësi ngec": {
+            "refer": "Problemi është te brava (cilindri). Kjo nuk është ende në asistent; thirr bravëndreqësin."
+          }
+        }
+      }
+    },
+    "cabinet_door": {
+      "name": "Derë dollapi",
+      "keywords": [
+        "dollap",
+        "kuzhin",
+        "menteshë",
+        "mentesh",
+        "cabinet"
+      ],
+      "tree": {
+        "q": "Çfarë problemi ka dera e dollapit?",
+        "answers": {
+          "Varet / nuk mbyllet drejt": {
+            "q": "Menteshat janë të fshehura brenda dollapit (lloji evropian)?",
+            "answers": {
+              "Po": {
+                "scenario": "cabinet_door"
+              },
+              "Jo / nuk e di": {
+                "refer": "Ngarko një foto nga brenda dollapit që të shohim menteshat. Ky lloj menteshe nuk është ende në asistent."
+              }
+            }
+          },
+          "Menteshja është shkëputur nga druri": {
+            "refer": "Druri rreth vidave është dëmtuar. Shih truket: 'Vrima e vidës është zgjeruar në dru'."
+          }
+        }
+      }
+    },
+    "wall_shelf": {
+      "name": "Raft në mur",
+      "keywords": [
+        "raft",
+        "mur",
+        "shelf",
+        "shpoj",
+        "shpuese"
+      ],
+      "tree": {
+        "q": "Muri është beton ose tullë?",
+        "answers": {
+          "Po": {
+            "scenario": "wall_shelf"
+          },
+          "Jo, është gips (rigips)": {
+            "refer": "Për gips duhen tipla të veçanta. Ky rast nuk është ende në asistent."
+          }
+        }
+      }
+    }
+  },
+  "unsafe_keywords": [
+    "rrym",
+    "prizë",
+    "prize",
+    "kabëll",
+    "kabell",
+    "siguresë",
+    "siguresa",
+    "gaz",
+    "bojler",
+    "llamb",
+    "elektrik",
+    "volt",
+    "tela",
+    "teli",
+    "telin",
+    "telat"
+  ],
+  "unsafe_message": "Kjo duket si punë me rrymë ose gaz. Asistenti nuk jep udhëzime për këto riparime, sepse një gabim mund të jetë vdekjeprurës. Fik siguresën ose valvulën e gazit dhe thirr një profesionist. Shih seksionin 'Elektrike' për këshilla sigurie."
+}
