@@ -102,6 +102,21 @@ class AppTests(unittest.TestCase):
         self.assertEqual(at.success[0].value, SCEN["drawer_runners"]["title_mk"])
         self.assertEqual(len(at.checkbox), 6)
 
+    def test_questions_already_answered_by_text_are_skipped(self):
+        at = self.run_app("sq", "Sirtari ka dalë nga shinat")
+        for key in ["pre_0_no", "pre_1_no", "ans_3_0"]:  # "what happens to the drawer?" is answered from the text
+            at.button(key=key).click().run()
+            self.assertFalse(at.exception)
+        asked = [m.value for m in at.markdown if m.value.startswith("•")]
+        self.assertTrue(any("✔" in a for a in asked), asked)
+        self.assertEqual(at.success[0].value, SCEN["drawer_runners"]["title_sq"])
+
+    def test_broken_part_in_text_goes_to_replacement(self):
+        at = self.run_app("sq", "Këmba e karriges është thyer")
+        at.button(key="pre_0_no").click().run()
+        self.assertTrue(at.info)  # replacement advice, no repair steps
+        self.assertFalse(at.checkbox)
+
     def test_three_to_five_questions(self):
         at = self.run_app("sq", "Karrigia lëkundet kur ulem")
         for key in ["pre_0_no", "pre_1_no", "ans_2_0", "tools_0"]:

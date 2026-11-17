@@ -20,6 +20,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 import aggregate
+import auto_answer
 import llm
 import manuals
 import photo_classifier
@@ -40,13 +41,13 @@ UI = {
         "unknown": "Nuk jam i sigurt për objektin. Cili është?", "object": "Objekti",
         "tools": "Mjetet që të duhen:", "steps": "Hapat:", "dont": "Mos bëj:",
         "how": "Si e njoha objektin?", "why": "Pse këta hapa? (si mendon AI)",
-        "why_text": "Pyetjet diagnostikuese ({nq}) e çuan te skenari `{sid}`. Planner-i A* gjeti {n} hapa duke hapur {na} gjendje; BFS do të hapte {nb}. Hapat e rrezikshëm përjashtohen nga plani.",
+        "why_text": "Pyetjet diagnostikuese ({nq}, prej tyre {na_auto} të përgjigjura vetë nga teksti/foto) e çuan te skenari `{sid}`. Planner-i A* gjeti {n} hapa duke hapur {na} gjendje; BFS do të hapte {nb}. Hapat e rrezikshëm përjashtohen nga plani.",
         "kinds": {"safety": "🛡️ Siguri", "dangerous_myth": "⚠️ Mit i rrezikshëm", "trick": "💡 Truk"},
         "safe_only": "Shfaq vetëm këshillat e sigurta", "myth": "Mos e provo këtë. Shpjegohet vetëm që ta kuptosh pse është i rrezikshëm.",
         "source": "Burimi", "mode_assistant": "Asistenti jep hapa riparimi.", "mode_info": "Vetëm këshilla dhe informacion.",
         "search": "Kërko mjet", "done": "Bravo! Riparimi përfundoi. ✅", "listen": "Dëgjo hapat",
         "vision": "Analiza e fotos (vision model)", "brand": "Marka", "model_": "Modeli", "ocr": "Teksti i lexuar nga foto (OCR)",
-        "damage": "Dëmtimi", "manual_found": "U gjet manuali në bibliotekë", "manual_link": "Kërko manualin zyrtar të këtij modeli", "no_key": "Pa API key: foto nuk analizohet nga vision model; njohja bëhet nga teksti.",
+        "damage": "Dëmtimi", "auto": "✔ nga teksti/foto, pa pyetur", "manual_found": "U gjet manuali në bibliotekë", "manual_link": "Kërko manualin zyrtar të këtij modeli", "no_key": "Pa API key: foto nuk analizohet nga vision model; njohja bëhet nga teksti.",
         "agg": "Bashkimi i rezultateve", "text_src": "Teksti (TF-IDF)", "photo_src": "Foto", "combined": "Rezultati",
         "man_intro": "Ngarko manualin PDF të pajisjes (opsionale) dhe bëj një pyetje. Kërkimi bëhet në udhëzuesit e aplikacionit dhe në manualet që ngarkon.",
         "man_upload": "Manuale (PDF, TXT, MD)", "man_q": "Pyetja jote", "man_answer": "Përgjigja e AI-së", "man_passages": "Pjesët e gjetura në manuale",
@@ -64,13 +65,13 @@ UI = {
         "unknown": "Не сум сигурен за предметот. Кој е?", "object": "Предмет",
         "tools": "Потребни алати:", "steps": "Чекори:", "dont": "Не прави:",
         "how": "Како го препознав предметот?", "why": "Зошто овие чекори? (како размислува AI)",
-        "why_text": "Дијагностичките прашања ({nq}) доведоа до сценариото `{sid}`. Планерот A* најде {n} чекори отворајќи {na} состојби; BFS би отворил {nb}. Опасните чекори се исклучени од планот.",
+        "why_text": "Дијагностичките прашања ({nq}, од нив {na_auto} одговорени автоматски од текстот/фотографијата) доведоа до сценариото `{sid}`. Планерот A* најде {n} чекори отворајќи {na} состојби; BFS би отворил {nb}. Опасните чекори се исклучени од планот.",
         "kinds": {"safety": "🛡️ Безбедност", "dangerous_myth": "⚠️ Опасен мит", "trick": "💡 Трик"},
         "safe_only": "Прикажи само безбедни совети", "myth": "Не го пробувај ова. Се објаснува само за да разбереш зошто е опасно.",
         "source": "Извор", "mode_assistant": "Асистентот дава чекори за поправка.", "mode_info": "Само совети и информации.",
         "search": "Барај алат", "done": "Браво! Поправката е завршена. ✅", "listen": "Слушни ги чекорите",
         "vision": "Анализа на фотографијата (vision модел)", "brand": "Марка", "model_": "Модел", "ocr": "Текст прочитан од фотографијата (OCR)",
-        "damage": "Оштетување", "manual_found": "Пронајден прирачник во библиотеката", "manual_link": "Барај го официјалниот прирачник за овој модел", "no_key": "Без API клуч: фотографијата не се анализира со vision модел; препознавањето е од текстот.",
+        "damage": "Оштетување", "auto": "✔ од текстот/фотографијата, без прашање", "manual_found": "Пронајден прирачник во библиотеката", "manual_link": "Барај го официјалниот прирачник за овој модел", "no_key": "Без API клуч: фотографијата не се анализира со vision модел; препознавањето е од текстот.",
         "agg": "Спојување на резултатите", "text_src": "Текст (TF-IDF)", "photo_src": "Фотографија", "combined": "Резултат",
         "man_intro": "Прикачи PDF прирачник за уредот (опционално) и постави прашање. Пребарувањето е во упатствата на апликацијата и во прирачниците што ги прикачуваш.",
         "man_upload": "Прирачници (PDF, TXT, MD)", "man_q": "Твоето прашање", "man_answer": "Одговор од AI", "man_passages": "Пронајдени делови од прирачниците",
@@ -244,8 +245,32 @@ with tab_ai:
                                      U["photo_src"]: (round(agg["photo"][1], 2) if agg["photo"] and agg["photo"][0] == o else None),
                                      U["combined"]: round(agg["combined"][o], 2)})
                     st.dataframe(rows, hide_index=True)
-            for q, a in ss.path:
-                st.write(f"• {q[lang]} → *{a[lang]}*")
+            # answer automatically every question the text/photo already answers
+            evidence = ss.text + " " + ((ss.get("vision") or {}).get("damage") or "")
+            while True:
+                if ss.pre < len(PRE):
+                    pq = PRE[ss.pre]
+                    guess = (auto_answer.safety(ss.get("vision")) if pq["id"] == "safety"
+                             else auto_answer.broken(ss.text, ss.get("vision")))
+                    if guess is None:
+                        break
+                    ss.path.append((pq["q"], DIAG["yes_no"][0 if guess == "yes" else 1], "auto"))
+                    if guess == "yes":
+                        ss.node, ss.pre = pq["yes"], len(PRE)
+                    else:
+                        ss.pre += 1
+                elif "q" in ss.node:
+                    i = auto_answer.choose_answer(evidence, ss.node["answers"], lang)
+                    if i is None:
+                        break
+                    ss.path.append((ss.node["q"], ss.node["answers"][i]["text"], "auto"))
+                    ss.node = ss.node["answers"][i]["next"]
+                else:
+                    break
+
+            for q, a, src in ss.path:
+                tag = f" _({U['auto']})_" if src == "auto" else ""
+                st.write(f"• {q[lang]} → *{a[lang]}*{tag}")
 
             node = ss.node
             if ss.pre < len(PRE):  # general questions first: safety, broken parts
@@ -253,21 +278,21 @@ with tab_ai:
                 st.write(f"**{pq['q'][lang]}**")
                 c1, c2 = st.columns(2)
                 if c1.button(DIAG["yes_no"][0][lang], key=f"pre_{ss.pre}_yes"):
-                    ss.path.append((pq["q"], DIAG["yes_no"][0]))
+                    ss.path.append((pq["q"], DIAG["yes_no"][0], None))
                     if pq["yes"].get("unsafe"):
                         ss.stage = "unsafe"
                     else:
                         ss.node, ss.pre = pq["yes"], len(PRE)
                     st.rerun()
                 if c2.button(DIAG["yes_no"][1][lang], key=f"pre_{ss.pre}_no"):
-                    ss.path.append((pq["q"], DIAG["yes_no"][1]))
+                    ss.path.append((pq["q"], DIAG["yes_no"][1], None))
                     ss.pre += 1
                     st.rerun()
             elif "q" in node:
                 st.write(f"**{node['q'][lang]}**")
                 for i, ans in enumerate(node["answers"]):
                     if st.button(ans["text"][lang], key=f"ans_{len(ss.path)}_{i}"):
-                        ss.path.append((node["q"], ans["text"]))
+                        ss.path.append((node["q"], ans["text"], None))
                         ss.node = ans["next"]
                         st.rerun()
             elif "refer" in node:
@@ -283,7 +308,7 @@ with tab_ai:
                         st.write(f"- {t}")
                     for i, ans in enumerate(DIAG["tools_answers"]):
                         if st.button(ans[lang], key=f"tools_{i}"):
-                            ss.path.append((DIAG["tools_question"], ans))
+                            ss.path.append((DIAG["tools_question"], ans, None))
                             ss.tools_ok = i == 0
                             st.rerun()
                 else:
@@ -306,7 +331,7 @@ with tab_ai:
                         for a in warnings:
                             st.warning(f"{field(a, 'label', lang)}: {field(a, 'safety_msg', lang)}")
                     with st.expander(U["why"]):
-                        st.write(U["why_text"].format(nq=len(ss.path), sid=sc["id"], n=len(plan), na=n_astar, nb=n_bfs))
+                        st.write(U["why_text"].format(nq=len(ss.path), na_auto=sum(1 for p in ss.path if p[2] == "auto"), sid=sc["id"], n=len(plan), na=n_astar, nb=n_bfs))
         st.button(U["other"], on_click=reset)
 
 # ---------------------------------------------------------------- manuals (RAG)

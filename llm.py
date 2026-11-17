@@ -30,9 +30,10 @@ PHOTO_SCHEMA = {
         "model": {"type": "string"},
         "ocr_text": {"type": "string"},
         "damage": {"type": "string"},
+        "broken_parts": {"type": "boolean"},
         "involves_electricity_gas_or_water": {"type": "boolean"},
     },
-    "required": ["object", "confidence", "brand", "model", "ocr_text", "damage",
+    "required": ["object", "confidence", "brand", "model", "ocr_text", "damage", "broken_parts",
                  "involves_electricity_gas_or_water"],
     "additionalProperties": False,
 }
@@ -77,7 +78,8 @@ def analyze_photo(image_bytes: bytes, media_type: str, description: str, lang: s
         "Return: the object; your confidence 0-1; brand and model if a label, sticker or logo shows them "
         "(empty string if not visible, never guess); ocr_text = every piece of text you can read in the photo, "
         "exactly as written; damage = what looks broken, one short sentence in "
-        f"{LANG_NAME[lang]}; involves_electricity_gas_or_water = true if the repair touches wiring, sockets, "
+        f"{LANG_NAME[lang]}; broken_parts = true only if a part is visibly broken, cracked or missing; "
+        "involves_electricity_gas_or_water = true if the repair touches wiring, sockets, "
         "gas or water pipes.\n"
         f"The user's own description: {description or '(none)'}"
     )
