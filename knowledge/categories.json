@@ -1,0 +1,61 @@
+{
+  "_note": "Sections of the app. mode 'assistant' = repair plans; 'info' = tips and safety only.",
+  "categories": [
+    {
+      "id": "mobilje",
+      "name": {
+        "sq": "Mobilje (dollap, sirtar, karrige, tavolinë)",
+        "mk": "Мебел (шкаф, фиока, стол, маса)"
+      },
+      "mode": "assistant"
+    },
+    {
+      "id": "brenda",
+      "name": {
+        "sq": "Brenda shtëpisë (dyer, doreza, rafte)",
+        "mk": "Во домот (врати, кваки, полици)"
+      },
+      "mode": "assistant"
+    },
+    {
+      "id": "jashte",
+      "name": {
+        "sq": "Jashtë (oborr, gardh, ballkon)",
+        "mk": "Надвор (двор, ограда, балкон)"
+      },
+      "mode": "info"
+    },
+    {
+      "id": "elektrike",
+      "name": {
+        "sq": "Elektrike",
+        "mk": "Електрика"
+      },
+      "mode": "info",
+      "warning": {
+        "sq": "Asistenti nuk jep udhëzime riparimi për rrymë. Vetëm këshilla sigurie; për punë thirr elektricistin.",
+        "mk": "Асистентот не дава упатства за поправки со струја. Само совети за безбедност; за работа повикај електричар."
+      }
+    },
+    {
+      "id": "elektronike",
+      "name": {
+        "sq": "Elektronike dhe teknologji",
+        "mk": "Електроника и технологија"
+      },
+      "mode": "info",
+      "warning": {
+        "sq": "Vetëm këshilla bazë (p.sh. rinisja, pastrimi). Mos hap pajisje me bateri të fryra ose që lidhen në rrymë.",
+        "mk": "Само основни совети (на пр. рестарт, чистење). Не отворај уреди со надуени батерии или што се приклучени на струја."
+      }
+    },
+    {
+      "id": "mjete",
+      "name": {
+        "sq": "Mjetet e punës",
+        "mk": "Алати за работа"
+      },
+      "mode": "info"
+    }
+  ]
+}

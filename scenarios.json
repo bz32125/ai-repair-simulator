@@ -12,43 +12,328 @@
       "category": "doors / furniture",
       "title": "Tighten a loose door handle",
       "description": "The lever door handle wobbles and droops. The screws are hidden under the rose cover (the round plate behind the handle).",
-      "initial": ["handle_loose", "screws_hidden"],
-      "goal": ["handle_tight", "cover_on", "handle_tested"],
+      "initial": [
+        "handle_loose",
+        "screws_hidden"
+      ],
+      "goal": [
+        "handle_tight",
+        "cover_on",
+        "handle_tested"
+      ],
       "actions": [
-        {"id": "get_screwdriver", "label": "Get a screwdriver set (Phillips and flat-head)", "pre": [], "add": ["has_screwdriver"], "del": []},
-        {"id": "get_hammer", "label": "Get a hammer", "pre": [], "add": ["has_hammer"], "del": []},
-        {"id": "remove_rose_cover", "label": "Pry off the rose cover with the flat-head screwdriver", "pre": ["has_screwdriver", "screws_hidden"], "add": ["screws_visible"], "del": ["screws_hidden"]},
-        {"id": "hold_handles_level", "label": "Hold both handles (both sides of the door) level", "pre": [], "add": ["handles_level"], "del": []},
-        {"id": "tighten_screws", "label": "Tighten the rose screws", "pre": ["has_screwdriver", "screws_visible"], "safety": ["handles_level"],
-         "safety_msg": "If you tighten the screws without holding the handles level, the handle is fixed crooked and the latch mechanism jams.",
-         "add": ["handle_tight"], "del": ["handle_loose"]},
-        {"id": "hit_with_hammer", "label": "Tap the handle into place with the hammer", "pre": ["has_hammer"], "safety": ["__never__"],
-         "safety_msg": "Hitting the handle damages the lock mechanism and the door. Handles are never fixed by force.", "add": [], "del": []},
-        {"id": "put_cover_back", "label": "Snap the rose cover back on", "pre": ["handle_tight", "screws_visible"], "add": ["cover_on"], "del": ["screws_visible"]},
-        {"id": "test_handle", "label": "Test the handle: open and close the door several times", "pre": ["handle_tight", "cover_on"], "add": ["handle_tested"], "del": []}
-      ]
+        {
+          "id": "get_screwdriver",
+          "label": "Get a screwdriver set (Phillips and flat-head)",
+          "pre": [],
+          "add": [
+            "has_screwdriver"
+          ],
+          "del": [],
+          "label_sq": "Merr kaçavidat (kryq dhe të sheshtë)",
+          "tools": [
+            "screwdriver_phillips",
+            "screwdriver_flat"
+          ],
+          "label_mk": "Земи одвртки (крстеста и рамна)"
+        },
+        {
+          "id": "get_hammer",
+          "label": "Get a hammer",
+          "pre": [],
+          "add": [
+            "has_hammer"
+          ],
+          "del": [],
+          "label_sq": "Merr çekiçin",
+          "tools": [
+            "hammer"
+          ],
+          "label_mk": "Земи чекан"
+        },
+        {
+          "id": "remove_rose_cover",
+          "label": "Pry off the rose cover with the flat-head screwdriver",
+          "pre": [
+            "has_screwdriver",
+            "screws_hidden"
+          ],
+          "add": [
+            "screws_visible"
+          ],
+          "del": [
+            "screws_hidden"
+          ],
+          "label_sq": "Hiq rozetën me kaçavidën e sheshtë",
+          "label_mk": "Тргни ја розетната со рамната одвртка"
+        },
+        {
+          "id": "hold_handles_level",
+          "label": "Hold both handles (both sides of the door) level",
+          "pre": [],
+          "add": [
+            "handles_level"
+          ],
+          "del": [],
+          "label_sq": "Mbaji të dyja dorezat (nga të dyja anët e derës) drejt",
+          "label_mk": "Држи ги двете кваки (од двете страни на вратата) исправено"
+        },
+        {
+          "id": "tighten_screws",
+          "label": "Tighten the rose screws",
+          "pre": [
+            "has_screwdriver",
+            "screws_visible"
+          ],
+          "safety": [
+            "handles_level"
+          ],
+          "safety_msg": "If you tighten the screws without holding the handles level, the handle is fixed crooked and the latch mechanism jams.",
+          "add": [
+            "handle_tight"
+          ],
+          "del": [
+            "handle_loose"
+          ],
+          "label_sq": "Shtrëngo vidat e rozetës",
+          "safety_msg_sq": "Nëse i shtrëngon vidat pa i mbajtur dorezat drejt, doreza mbetet e shtrembër dhe mekanizmi ngec.",
+          "label_mk": "Затегни ги шрафовите на розетната",
+          "safety_msg_mk": "Ако ги затегнеш шрафовите без да ги држиш кваките исправено, кваката останува накривена и механизмот заглавува."
+        },
+        {
+          "id": "hit_with_hammer",
+          "label": "Tap the handle into place with the hammer",
+          "pre": [
+            "has_hammer"
+          ],
+          "safety": [
+            "__never__"
+          ],
+          "safety_msg": "Hitting the handle damages the lock mechanism and the door. Handles are never fixed by force.",
+          "add": [],
+          "del": [],
+          "label_sq": "Godite dorezën me çekiç që të rrijë në vend",
+          "safety_msg_sq": "Goditja e dëmton bravën dhe derën. Dorezat nuk rregullohen me forcë.",
+          "label_mk": "Удри ја кваката со чекан за да застане на место",
+          "safety_msg_mk": "Ударот ја оштетува бравата и вратата. Кваките не се поправаат со сила."
+        },
+        {
+          "id": "put_cover_back",
+          "label": "Snap the rose cover back on",
+          "pre": [
+            "handle_tight",
+            "screws_visible"
+          ],
+          "add": [
+            "cover_on"
+          ],
+          "del": [
+            "screws_visible"
+          ],
+          "label_sq": "Vendose rozetën përsëri",
+          "label_mk": "Врати ја розетната"
+        },
+        {
+          "id": "test_handle",
+          "label": "Test the handle: open and close the door several times",
+          "pre": [
+            "handle_tight",
+            "cover_on"
+          ],
+          "add": [
+            "handle_tested"
+          ],
+          "del": [],
+          "label_sq": "Provoje dorezën: hape dhe mbylle derën disa herë",
+          "label_mk": "Провери ја кваката: отвори ја и затвори ја вратата неколку пати"
+        }
+      ],
+      "title_sq": "Shtrëngo dorezën e lirë të derës",
+      "description_sq": "Doreza e derës lëviz dhe varet poshtë. Vidat janë të fshehura nën kapakun e rrumbullakët (rozetën) pas dorezës.",
+      "title_mk": "Затегни ја лабавата квака на вратата",
+      "description_mk": "Кваката на вратата се клати и виси надолу. Шрафовите се скриени под розетната (тркалезната плочка зад кваката)."
     },
     {
       "id": "cabinet_door",
       "category": "furniture",
       "title": "Fix a sagging cabinet door",
       "description": "A kitchen cabinet door does not close straight: it sags and rubs against the neighbouring door. It has concealed (European) hinges with adjustment screws.",
-      "initial": ["door_sagging", "mounting_screws_loose"],
-      "goal": ["hinges_secure", "side_gap_ok", "height_ok", "door_tested"],
+      "initial": [
+        "door_sagging",
+        "mounting_screws_loose"
+      ],
+      "goal": [
+        "hinges_secure",
+        "side_gap_ok",
+        "height_ok",
+        "door_tested"
+      ],
       "actions": [
-        {"id": "get_screwdriver", "label": "Get a Phillips screwdriver", "pre": [], "add": ["has_screwdriver"], "del": []},
-        {"id": "get_hammer", "label": "Get a hammer", "pre": [], "add": ["has_hammer"], "del": []},
-        {"id": "open_door", "label": "Open the cabinet door fully", "pre": [], "add": ["door_open"], "del": ["door_closed"]},
-        {"id": "support_door", "label": "Support the door with your hand (or ask for help)", "pre": ["door_open"], "add": ["door_supported"], "del": []},
-        {"id": "tighten_mounting_screws", "label": "Tighten the screws that fix the hinge plate to the cabinet", "pre": ["has_screwdriver", "door_open", "mounting_screws_loose"], "add": ["hinges_secure"], "del": ["mounting_screws_loose"]},
-        {"id": "remove_mounting_screws", "label": "Remove the hinge screws completely", "pre": ["has_screwdriver", "door_open"], "safety": ["door_supported"],
-         "safety_msg": "Without supporting the door it falls, can break, or injure you.", "add": ["door_removed"], "del": ["hinges_secure"]},
-        {"id": "adjust_side_screw", "label": "Turn the hinge side-adjustment screw (left/right)", "pre": ["has_screwdriver", "door_open", "hinges_secure"], "add": ["side_gap_ok"], "del": []},
-        {"id": "adjust_height", "label": "Adjust the door height at the hinge mounting plate", "pre": ["has_screwdriver", "door_open", "hinges_secure"], "add": ["height_ok"], "del": ["door_sagging"]},
-        {"id": "hit_hinge", "label": "Hit the hinge with the hammer", "pre": ["has_hammer"], "safety": ["__never__"],
-         "safety_msg": "Concealed hinges are small mechanisms; hitting them breaks them.", "add": [], "del": []},
-        {"id": "close_and_check", "label": "Close the door and check the gaps with the neighbouring door", "pre": ["door_open", "side_gap_ok", "height_ok"], "add": ["door_tested", "door_closed"], "del": ["door_open"]}
-      ]
+        {
+          "id": "get_screwdriver",
+          "label": "Get a Phillips screwdriver",
+          "pre": [],
+          "add": [
+            "has_screwdriver"
+          ],
+          "del": [],
+          "label_sq": "Merr kaçavidën kryq",
+          "tools": [
+            "screwdriver_phillips"
+          ],
+          "label_mk": "Земи крстеста одвртка"
+        },
+        {
+          "id": "get_hammer",
+          "label": "Get a hammer",
+          "pre": [],
+          "add": [
+            "has_hammer"
+          ],
+          "del": [],
+          "label_sq": "Merr çekiçin",
+          "tools": [
+            "hammer"
+          ],
+          "label_mk": "Земи чекан"
+        },
+        {
+          "id": "open_door",
+          "label": "Open the cabinet door fully",
+          "pre": [],
+          "add": [
+            "door_open"
+          ],
+          "del": [
+            "door_closed"
+          ],
+          "label_sq": "Hape derën e dollapit plotësisht",
+          "label_mk": "Отвори ја вратата на шкафот целосно"
+        },
+        {
+          "id": "support_door",
+          "label": "Support the door with your hand (or ask for help)",
+          "pre": [
+            "door_open"
+          ],
+          "add": [
+            "door_supported"
+          ],
+          "del": [],
+          "label_sq": "Mbaje derën me dorë (ose kërko ndihmë)",
+          "label_mk": "Придржи ја вратата со рака (или побарај помош)"
+        },
+        {
+          "id": "tighten_mounting_screws",
+          "label": "Tighten the screws that fix the hinge plate to the cabinet",
+          "pre": [
+            "has_screwdriver",
+            "door_open",
+            "mounting_screws_loose"
+          ],
+          "add": [
+            "hinges_secure"
+          ],
+          "del": [
+            "mounting_screws_loose"
+          ],
+          "label_sq": "Shtrëngo vidat që e mbajnë pllakën e menteshës te dollapi",
+          "label_mk": "Затегни ги шрафовите што ја држат плочката на шарката за шкафот"
+        },
+        {
+          "id": "remove_mounting_screws",
+          "label": "Remove the hinge screws completely",
+          "pre": [
+            "has_screwdriver",
+            "door_open"
+          ],
+          "safety": [
+            "door_supported"
+          ],
+          "safety_msg": "Without supporting the door it falls, can break, or injure you.",
+          "add": [
+            "door_removed"
+          ],
+          "del": [
+            "hinges_secure"
+          ],
+          "label_sq": "Hiq plotësisht vidat e menteshës",
+          "safety_msg_sq": "Pa e mbajtur derën, ajo bie, mund të thyhet ose të të lëndojë.",
+          "label_mk": "Извади ги целосно шрафовите на шарката",
+          "safety_msg_mk": "Ако не ја придржуваш, вратата паѓа, може да се скрши или да те повреди."
+        },
+        {
+          "id": "adjust_side_screw",
+          "label": "Turn the hinge side-adjustment screw (left/right)",
+          "pre": [
+            "has_screwdriver",
+            "door_open",
+            "hinges_secure"
+          ],
+          "add": [
+            "side_gap_ok"
+          ],
+          "del": [],
+          "label_sq": "Rrotullo vidën anësore të menteshës (majtas/djathtas)",
+          "label_mk": "Сврти ја страничната завртка на шарката (лево/десно)"
+        },
+        {
+          "id": "adjust_height",
+          "label": "Adjust the door height at the hinge mounting plate",
+          "pre": [
+            "has_screwdriver",
+            "door_open",
+            "hinges_secure"
+          ],
+          "add": [
+            "height_ok"
+          ],
+          "del": [
+            "door_sagging"
+          ],
+          "label_sq": "Rregullo lartësinë e derës te pllaka e menteshës",
+          "label_mk": "Подеси ја висината на вратата на плочката на шарката"
+        },
+        {
+          "id": "hit_hinge",
+          "label": "Hit the hinge with the hammer",
+          "pre": [
+            "has_hammer"
+          ],
+          "safety": [
+            "__never__"
+          ],
+          "safety_msg": "Concealed hinges are small mechanisms; hitting them breaks them.",
+          "add": [],
+          "del": [],
+          "label_sq": "Godite menteshën me çekiç",
+          "safety_msg_sq": "Menteshat e fshehura janë mekanizma të vegjël; goditja i thyen.",
+          "label_mk": "Удри ја шарката со чекан",
+          "safety_msg_mk": "Скриените шарки се мали механизми; ударот ги крши."
+        },
+        {
+          "id": "close_and_check",
+          "label": "Close the door and check the gaps with the neighbouring door",
+          "pre": [
+            "door_open",
+            "side_gap_ok",
+            "height_ok"
+          ],
+          "add": [
+            "door_tested",
+            "door_closed"
+          ],
+          "del": [
+            "door_open"
+          ],
+          "label_sq": "Mbylle derën dhe kontrollo hapësirat me derën fqinje",
+          "label_mk": "Затвори ја вратата и провери ги процепите со соседната врата"
+        }
+      ],
+      "title_sq": "Rregullo derën e varur të dollapit",
+      "description_sq": "Dera e dollapit të kuzhinës nuk mbyllet drejt: varet dhe fërkohet me derën fqinje. Ka mentesha të fshehura (evropiane) me vida rregulluese.",
+      "title_mk": "Поправи ја спуштената врата на шкафот",
+      "description_mk": "Вратата на кујнскиот шкаф не се затвора право: виси и се трие со соседната врата. Има скриени (европски) шарки со завртки за подесување."
     },
     {
       "id": "wall_shelf",
@@ -56,22 +341,599 @@
       "title": "Mount a shelf on a concrete or brick wall",
       "description": "A shelf with two metal brackets needs to be hung on a room wall.",
       "initial": [],
-      "goal": ["shelf_mounted", "shelf_level"],
+      "goal": [
+        "shelf_mounted",
+        "shelf_level"
+      ],
       "actions": [
-        {"id": "get_detector", "label": "Get a cable and pipe detector", "pre": [], "add": ["has_detector"], "del": []},
-        {"id": "scan_wall", "label": "Scan the wall with the detector where you will drill", "pre": ["has_detector"], "add": ["wall_scanned"], "del": []},
-        {"id": "get_level", "label": "Get a tape measure and spirit level", "pre": [], "add": ["has_level"], "del": []},
-        {"id": "mark_holes", "label": "Mark the hole positions with a pencil, using the level", "pre": ["has_level"], "add": ["holes_marked"], "del": []},
-        {"id": "get_drill", "label": "Get a drill with a masonry bit", "pre": [], "add": ["has_drill"], "del": []},
-        {"id": "drill_holes", "label": "Drill the holes", "pre": ["has_drill", "holes_marked"], "safety": ["wall_scanned"],
-         "safety_msg": "Without scanning the wall you may drill into an electrical cable (risk of electric shock) or a water pipe.", "add": ["holes_drilled"], "del": []},
-        {"id": "insert_wall_plugs", "label": "Insert wall plugs (anchors) into the holes", "pre": ["holes_drilled"], "add": ["plugs_inserted"], "del": []},
-        {"id": "get_screwdriver", "label": "Get a screwdriver", "pre": [], "add": ["has_screwdriver"], "del": []},
-        {"id": "screw_brackets", "label": "Screw the brackets to the wall", "pre": ["holes_drilled", "has_screwdriver"], "safety": ["plugs_inserted"],
-         "safety_msg": "Without wall plugs the screws do not hold in concrete or brick; the shelf falls with everything on it.", "add": ["brackets_mounted"], "del": []},
-        {"id": "place_shelf", "label": "Place the shelf on the brackets and fix it", "pre": ["brackets_mounted"], "add": ["shelf_mounted"], "del": []},
-        {"id": "check_level", "label": "Check with the level that the shelf is straight", "pre": ["shelf_mounted", "has_level"], "add": ["shelf_level"], "del": []}
-      ]
+        {
+          "id": "get_detector",
+          "label": "Get a cable and pipe detector",
+          "pre": [],
+          "add": [
+            "has_detector"
+          ],
+          "del": [],
+          "label_sq": "Merr detektorin e kabllove dhe tubave",
+          "tools": [
+            "detector"
+          ],
+          "label_mk": "Земи детектор за кабли и цевки"
+        },
+        {
+          "id": "scan_wall",
+          "label": "Scan the wall with the detector where you will drill",
+          "pre": [
+            "has_detector"
+          ],
+          "add": [
+            "wall_scanned"
+          ],
+          "del": [],
+          "label_sq": "Kontrollo murin me detektor aty ku do të shposh",
+          "label_mk": "Провери го ѕидот со детекторот каде ќе дупчиш"
+        },
+        {
+          "id": "get_level",
+          "label": "Get a tape measure and spirit level",
+          "pre": [],
+          "add": [
+            "has_level"
+          ],
+          "del": [],
+          "label_sq": "Merr metrin dhe nivelën",
+          "tools": [
+            "tape_measure",
+            "spirit_level"
+          ],
+          "label_mk": "Земи метар и либела"
+        },
+        {
+          "id": "mark_holes",
+          "label": "Mark the hole positions with a pencil, using the level",
+          "pre": [
+            "has_level"
+          ],
+          "add": [
+            "holes_marked"
+          ],
+          "del": [],
+          "label_sq": "Shëno vrimat me laps, duke përdorur nivelën",
+          "label_mk": "Обележи ги дупките со молив, користејќи ја либелата"
+        },
+        {
+          "id": "get_drill",
+          "label": "Get a drill with a masonry bit",
+          "pre": [],
+          "add": [
+            "has_drill"
+          ],
+          "del": [],
+          "label_sq": "Merr shpuesen me majë për mur (beton)",
+          "tools": [
+            "drill"
+          ],
+          "label_mk": "Земи дупчалка со бургија за ѕид (бетон)"
+        },
+        {
+          "id": "drill_holes",
+          "label": "Drill the holes",
+          "pre": [
+            "has_drill",
+            "holes_marked"
+          ],
+          "safety": [
+            "wall_scanned"
+          ],
+          "safety_msg": "Without scanning the wall you may drill into an electrical cable (risk of electric shock) or a water pipe.",
+          "add": [
+            "holes_drilled"
+          ],
+          "del": [],
+          "label_sq": "Shpo vrimat",
+          "safety_msg_sq": "Pa e kontrolluar murin mund të shposh një kabllo elektrike (rrezik goditjeje nga rryma) ose një tub uji.",
+          "label_mk": "Издупчи ги дупките",
+          "safety_msg_mk": "Без проверка на ѕидот може да издупчиш електричен кабел (опасност од струен удар) или водоводна цевка."
+        },
+        {
+          "id": "insert_wall_plugs",
+          "label": "Insert wall plugs (anchors) into the holes",
+          "pre": [
+            "holes_drilled"
+          ],
+          "add": [
+            "plugs_inserted"
+          ],
+          "del": [],
+          "label_sq": "Fut tiplat në vrima",
+          "tools": [
+            "wall_plug"
+          ],
+          "label_mk": "Стави типли во дупките"
+        },
+        {
+          "id": "get_screwdriver",
+          "label": "Get a screwdriver",
+          "pre": [],
+          "add": [
+            "has_screwdriver"
+          ],
+          "del": [],
+          "label_sq": "Merr kaçavidën",
+          "tools": [
+            "screwdriver_phillips"
+          ],
+          "label_mk": "Земи одвртка"
+        },
+        {
+          "id": "screw_brackets",
+          "label": "Screw the brackets to the wall",
+          "pre": [
+            "holes_drilled",
+            "has_screwdriver"
+          ],
+          "safety": [
+            "plugs_inserted"
+          ],
+          "safety_msg": "Without wall plugs the screws do not hold in concrete or brick; the shelf falls with everything on it.",
+          "add": [
+            "brackets_mounted"
+          ],
+          "del": [],
+          "label_sq": "Vidhosi mbajtëset në mur",
+          "safety_msg_sq": "Pa tipla vidat nuk mbajnë në beton ose tullë; rafti bie me gjithçka mbi të.",
+          "label_mk": "Зашрафи ги држачите на ѕидот",
+          "safety_msg_mk": "Без типли шрафовите не држат во бетон или тула; полицата паѓа со сè што е на неа."
+        },
+        {
+          "id": "place_shelf",
+          "label": "Place the shelf on the brackets and fix it",
+          "pre": [
+            "brackets_mounted"
+          ],
+          "add": [
+            "shelf_mounted"
+          ],
+          "del": [],
+          "label_sq": "Vendose raftin mbi mbajtëse dhe fiksoje",
+          "label_mk": "Стави ја полицата на држачите и прицврсти ја"
+        },
+        {
+          "id": "check_level",
+          "label": "Check with the level that the shelf is straight",
+          "pre": [
+            "shelf_mounted",
+            "has_level"
+          ],
+          "add": [
+            "shelf_level"
+          ],
+          "del": [],
+          "label_sq": "Kontrollo me nivelë që rafti është drejt",
+          "label_mk": "Провери со либелата дека полицата е права"
+        }
+      ],
+      "title_sq": "Vendos raft në mur betoni ose tulle",
+      "description_sq": "Një raft me dy mbajtëse metalike duhet varur në murin e dhomës.",
+      "title_mk": "Постави полица на ѕид од бетон или тула",
+      "description_mk": "Полица со два метални држачи треба да се закачи на ѕидот во собата."
+    },
+    {
+      "id": "chair_bolts",
+      "category": "furniture",
+      "title": "Fix a wobbly chair or table with bolted legs",
+      "title_sq": "Rregullo karrigen ose tavolinën që lëkundet (këmbë me bulona)",
+      "description": "Flat-pack chair or table whose legs are fixed with Allen bolts; the bolts have loosened.",
+      "description_sq": "Karrige ose tavolinë e montueshme, këmbët e së cilës mbahen me bulona Imbus; bulonat janë liruar.",
+      "initial": [
+        "bolts_loose",
+        "chair_upright"
+      ],
+      "goal": [
+        "bolts_tight",
+        "chair_upright",
+        "chair_tested"
+      ],
+      "actions": [
+        {
+          "id": "get_allen_key",
+          "label": "Get the right size Allen key",
+          "label_sq": "Merr çelësin Imbus të masës së duhur",
+          "pre": [],
+          "add": [
+            "has_allen_key"
+          ],
+          "del": [],
+          "tools": [
+            "allen_key"
+          ],
+          "label_mk": "Земи имбус клуч со вистинска големина"
+        },
+        {
+          "id": "get_hammer",
+          "label": "Get a hammer",
+          "label_sq": "Merr çekiçin",
+          "pre": [],
+          "add": [
+            "has_hammer"
+          ],
+          "del": [],
+          "tools": [
+            "hammer"
+          ],
+          "label_mk": "Земи чекан"
+        },
+        {
+          "id": "turn_upside_down",
+          "label": "Turn the chair/table upside down on a soft surface",
+          "label_sq": "Ktheje karrigen/tavolinën përmbys mbi një sipërfaqe të butë",
+          "pre": [
+            "chair_upright"
+          ],
+          "add": [
+            "chair_upside"
+          ],
+          "del": [
+            "chair_upright"
+          ],
+          "label_mk": "Преврти го столот/масата наопаку на мека површина"
+        },
+        {
+          "id": "tighten_bolts",
+          "label": "Tighten every leg bolt crosswise, a little at a time",
+          "label_sq": "Shtrëngo çdo bulon të këmbëve në mënyrë të kryqëzuar, pak nga pak",
+          "pre": [
+            "has_allen_key",
+            "chair_upside",
+            "bolts_loose"
+          ],
+          "add": [
+            "bolts_tight"
+          ],
+          "del": [
+            "bolts_loose"
+          ],
+          "label_mk": "Затегни ја секоја завртка на ногарките вкрстено, малку по малку"
+        },
+        {
+          "id": "hit_leg",
+          "label": "Hit the loose leg with the hammer",
+          "label_sq": "Godite këmbën e lirë me çekiç",
+          "pre": [
+            "has_hammer"
+          ],
+          "add": [],
+          "del": [],
+          "safety": [
+            "__never__"
+          ],
+          "safety_msg": "Hitting it cracks the wood or strips the bolt thread; the leg stays loose.",
+          "safety_msg_sq": "Goditja e çan drurin ose e prish filetën e bulonit; këmba mbetet e lirë.",
+          "label_mk": "Удри ја лабавата ногарка со чекан",
+          "safety_msg_mk": "Ударот го пука дрвото или го оштетува навојот на завртката; ногарката останува лабава."
+        },
+        {
+          "id": "turn_upright",
+          "label": "Turn it back upright",
+          "label_sq": "Ktheje përsëri në këmbë",
+          "pre": [
+            "chair_upside"
+          ],
+          "add": [
+            "chair_upright"
+          ],
+          "del": [
+            "chair_upside"
+          ],
+          "label_mk": "Исправи го повторно"
+        },
+        {
+          "id": "test_chair",
+          "label": "Test it: press on each corner, it must not wobble",
+          "label_sq": "Provoje: shtyp në çdo cep, nuk duhet të lëkundet",
+          "pre": [
+            "chair_upright",
+            "bolts_tight"
+          ],
+          "add": [
+            "chair_tested"
+          ],
+          "del": [],
+          "label_mk": "Провери: притисни на секој агол, не смее да се клати"
+        }
+      ],
+      "title_mk": "Поправи стол или маса што се клати (ногарки со завртки)",
+      "description_mk": "Стол или маса за монтирање чии ногарки се држат со имбус завртки; завртките се олабавиле."
+    },
+    {
+      "id": "chair_glue",
+      "category": "furniture",
+      "title": "Re-glue a loose leg of a wooden chair",
+      "title_sq": "Ringjit këmbën e lirë të karriges prej druri",
+      "description": "Solid-wood chair whose leg joint (dowel) has come loose; there are no bolts.",
+      "description_sq": "Karrige prej druri të ngurtë, nyja e këmbës (kunji) e së cilës është liruar; nuk ka bulona.",
+      "initial": [
+        "joint_loose"
+      ],
+      "goal": [
+        "glue_dry",
+        "chair_tested"
+      ],
+      "actions": [
+        {
+          "id": "get_glue",
+          "label": "Get wood glue",
+          "label_sq": "Merr ngjitës druri",
+          "pre": [],
+          "add": [
+            "has_glue"
+          ],
+          "del": [],
+          "tools": [
+            "wood_glue"
+          ],
+          "label_mk": "Земи лепак за дрво"
+        },
+        {
+          "id": "get_clamp",
+          "label": "Get a clamp (or a strap)",
+          "label_sq": "Merr një shtrëngues (ose rrip)",
+          "pre": [],
+          "add": [
+            "has_clamp"
+          ],
+          "del": [],
+          "tools": [
+            "clamp"
+          ],
+          "label_mk": "Земи стега (или ремен)"
+        },
+        {
+          "id": "open_joint",
+          "label": "Gently pull the loose joint apart",
+          "label_sq": "Hape me kujdes nyjën e lirë",
+          "pre": [
+            "joint_loose"
+          ],
+          "add": [
+            "joint_open"
+          ],
+          "del": [
+            "joint_loose"
+          ],
+          "label_mk": "Внимателно раздели го лабавиот спој"
+        },
+        {
+          "id": "clean_joint",
+          "label": "Scrape the old glue off both parts",
+          "label_sq": "Gërvisht ngjitësin e vjetër nga të dyja pjesët",
+          "pre": [
+            "joint_open"
+          ],
+          "add": [
+            "joint_clean"
+          ],
+          "del": [],
+          "label_mk": "Изстругај го стариот лепак од двата дела"
+        },
+        {
+          "id": "apply_glue",
+          "label": "Apply wood glue in the hole and on the dowel",
+          "label_sq": "Lyej ngjitës druri në vrimë dhe në kunj",
+          "pre": [
+            "has_glue",
+            "joint_clean"
+          ],
+          "add": [
+            "glue_applied"
+          ],
+          "del": [],
+          "label_mk": "Нанеси лепак за дрво во дупката и на типлата"
+        },
+        {
+          "id": "close_joint",
+          "label": "Push the joint back together",
+          "label_sq": "Bashkoje nyjën përsëri",
+          "pre": [
+            "glue_applied",
+            "joint_open"
+          ],
+          "add": [
+            "joint_closed"
+          ],
+          "del": [
+            "joint_open"
+          ],
+          "label_mk": "Спои го спојот повторно"
+        },
+        {
+          "id": "clamp_joint",
+          "label": "Clamp the joint and wipe off extra glue",
+          "label_sq": "Shtrëngoje nyjën dhe fshije ngjitësin e tepërt",
+          "pre": [
+            "has_clamp",
+            "joint_closed"
+          ],
+          "add": [
+            "clamped"
+          ],
+          "del": [],
+          "label_mk": "Стегни го спојот и избриши го вишокот лепак"
+        },
+        {
+          "id": "wait_dry",
+          "label": "Wait as long as the glue label says (often 24 h)",
+          "label_sq": "Prit aq sa thotë ngjitësi (shpesh 24 orë)",
+          "pre": [
+            "clamped"
+          ],
+          "add": [
+            "glue_dry"
+          ],
+          "del": [],
+          "label_mk": "Почекај колку што пишува на лепакот (често 24 часа)"
+        },
+        {
+          "id": "sit_on_chair",
+          "label": "Sit on the chair to test it",
+          "label_sq": "Ulu në karrige për ta provuar",
+          "pre": [
+            "joint_closed"
+          ],
+          "add": [
+            "chair_tested"
+          ],
+          "del": [],
+          "safety": [
+            "glue_dry"
+          ],
+          "safety_msg": "Before the glue is dry the joint opens again and you can fall.",
+          "safety_msg_sq": "Para se të thahet ngjitësi, nyja hapet përsëri dhe mund të biesh.",
+          "label_mk": "Седни на столот за да го провериш",
+          "safety_msg_mk": "Пред лепакот да се исуши, спојот повторно се отвора и може да паднеш."
+        }
+      ],
+      "title_mk": "Повторно залепи ја лабавата ногарка на дрвениот стол",
+      "description_mk": "Стол од масивно дрво чиј спој на ногарката (типла) се олабавил; нема завртки."
+    },
+    {
+      "id": "drawer_runners",
+      "category": "furniture",
+      "title": "Put a drawer back on its runners",
+      "title_sq": "Ktheje sirtarin në shinat e tij",
+      "description": "A drawer with roller runners has come off its track: it is crooked and hard to open.",
+      "description_sq": "Sirtari me shina me rrota ka dalë nga shinat: rri shtrembër dhe hapet me vështirësi.",
+      "initial": [
+        "drawer_off_track",
+        "drawer_in",
+        "drawer_full"
+      ],
+      "goal": [
+        "drawer_on_track",
+        "drawer_in",
+        "drawer_tested",
+        "drawer_full"
+      ],
+      "actions": [
+        {
+          "id": "empty_drawer",
+          "label": "Empty the drawer",
+          "label_sq": "Zbraze sirtarin",
+          "pre": [
+            "drawer_full",
+            "drawer_in"
+          ],
+          "add": [
+            "drawer_empty"
+          ],
+          "del": [
+            "drawer_full"
+          ],
+          "label_mk": "Испразни ја фиоката"
+        },
+        {
+          "id": "pull_out",
+          "label": "Pull the drawer out, lifting the front slightly",
+          "label_sq": "Nxirre sirtarin duke e ngritur pak pjesën e përparme",
+          "pre": [
+            "drawer_in"
+          ],
+          "add": [
+            "drawer_out"
+          ],
+          "del": [
+            "drawer_in"
+          ],
+          "safety": [
+            "drawer_empty"
+          ],
+          "safety_msg": "A full drawer is heavy: it falls on your feet and the contents break.",
+          "safety_msg_sq": "Sirtari plot është i rëndë: bie mbi këmbë dhe sendet brenda thyhen.",
+          "label_mk": "Извади ја фиоката, кревајќи го малку предниот дел",
+          "safety_msg_mk": "Полната фиока е тешка: паѓа на нозе и работите внатре се кршат."
+        },
+        {
+          "id": "force_drawer",
+          "label": "Push the stuck drawer in hard",
+          "label_sq": "Shtyje fort sirtarin që ka ngecur",
+          "pre": [
+            "drawer_in"
+          ],
+          "add": [],
+          "del": [],
+          "safety": [
+            "__never__"
+          ],
+          "safety_msg": "Forcing it bends or breaks the runners.",
+          "safety_msg_sq": "Forcimi i shtrembëron ose i thyen shinat.",
+          "label_mk": "Турни ја силно заглавената фиока",
+          "safety_msg_mk": "Со сила лизгачите се криват или кршат."
+        },
+        {
+          "id": "align_wheels",
+          "label": "Set the drawer's wheels into the cabinet runners",
+          "label_sq": "Vendosi rrotat e sirtarit brenda shinave të dollapit",
+          "pre": [
+            "drawer_out",
+            "drawer_off_track"
+          ],
+          "add": [
+            "drawer_on_track"
+          ],
+          "del": [
+            "drawer_off_track"
+          ],
+          "label_mk": "Стави ги тркалцата на фиоката во лизгачите на шкафот"
+        },
+        {
+          "id": "push_in",
+          "label": "Slide the drawer in gently",
+          "label_sq": "Shtyje sirtarin brenda ngadalë",
+          "pre": [
+            "drawer_out",
+            "drawer_on_track"
+          ],
+          "add": [
+            "drawer_in"
+          ],
+          "del": [
+            "drawer_out"
+          ],
+          "label_mk": "Турни ја фиоката внатре полека"
+        },
+        {
+          "id": "test_drawer",
+          "label": "Open and close it fully a few times",
+          "label_sq": "Hape dhe mbylle plotësisht disa herë",
+          "pre": [
+            "drawer_in",
+            "drawer_on_track"
+          ],
+          "add": [
+            "drawer_tested"
+          ],
+          "del": [],
+          "label_mk": "Отвори ја и затвори ја целосно неколку пати"
+        },
+        {
+          "id": "refill",
+          "label": "Put the contents back",
+          "label_sq": "Ktheji sendet brenda",
+          "pre": [
+            "drawer_tested",
+            "drawer_empty"
+          ],
+          "add": [
+            "drawer_full"
+          ],
+          "del": [
+            "drawer_empty"
+          ],
+          "label_mk": "Врати ги работите внатре"
+        }
+      ],
+      "title_mk": "Врати ја фиоката на нејзините лизгачи",
+      "description_mk": "Фиока со лизгачи со тркалца излегла од шините: стои накривено и тешко се отвора."
     }
   ]
 }

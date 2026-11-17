@@ -1,33 +1,70 @@
 # AI Repair Assistant
-Introduction to AI (ECS-609) — individual project, Besnik Zeqiri
+Introduction to AI (ECS-609, SEEU) — individual project, Besnik Zeqiri
 
-A photo-based assistant that helps ordinary people fix simple broken things at home
-(furniture, doors, cabinets, simple hand tools) that would usually need a handyman.
+A bilingual (**Albanian / Macedonian**) assistant that helps ordinary people fix simple broken
+things at home (furniture, doors, cabinets, drawers, shelves) that would usually need a handyman.
+The user describes the problem (and optionally uploads a photo); the assistant recognizes the
+object, asks short clarifying questions, lists the tools and gives safe, ordered repair steps.
+
+Inspired by iFixit FixBot (see [ROADMAP.md](ROADMAP.md)), but built as an **explainable AI pipeline**
+instead of a large language model: every decision can be shown and tested.
 
 ## How it works
-1. **Photo upload** — the user uploads a photo of the broken object.
-2. **Recognition** — an image classifier identifies the object type (e.g. cabinet door, door handle).
-3. **Clarifying questions** — a decision tree asks short questions to pin down the exact problem
-   (e.g. "Does the handle wobble or has it fallen off?").
-4. **Tools** — rule-based recommendation of the tools and parts needed (screwdriver type, screws, wall plugs...).
-5. **Repair steps** — a planner (BFS/A*) orders the repair actions from the scenario knowledge base,
-   respecting preconditions and safety rules.
-6. **Visual guidance** — each step is shown with arrows/markers on a reference image of the object.
+```
+text + photo ─► safety gate ─► recognition ─────────► aggregation ─► 3-5 questions ─► tools ─► A* planner ─► steps ─► speech
+                (rules)        text: TF-IDF            weighted avg /   (decision tree,  (rules)  (BFS for              (TTS)
+                               photo: vision LLM + OCR product / vote   buttons)                  comparison)
+                               or CNN (MobileNetV3)
+manuals: built-in guides + uploaded PDFs ─► TF-IDF retrieval ─► LLM answer with citations (RAG)
+```
+A detailed explanation of every AI step is in [docs/how_ai_works_sq.md](docs/how_ai_works_sq.md) (Albanian)
+and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown in the app.
+| Component | AI technique | File |
+|---|---|---|
+| Safety gate | Rule-based system | `app.py`, `knowledge/diagnosis.json` |
+| Text recognition | TF-IDF + cosine similarity (from scratch), keyword baseline | `text_recognizer.py` |
+| Photo recognition | CNN, transfer learning (MobileNetV3-Small) | `train_classifier.py`, `photo_classifier.py` |
+| Photo understanding, OCR, brand/model | Vision LLM with a JSON schema (structured output) | `llm.py` |
+| Combining photo + text | Aggregation: weighted average, product (Naive Bayes), majority vote | `aggregate.py` |
+| Clarifying questions | Decision tree, 3–5 questions | `knowledge/diagnosis.json` |
+| Manual search | RAG: TF-IDF retrieval over guides and uploaded PDFs + LLM answer with citations | `manuals.py`, `llm.py` |
+| Reading steps aloud | Text-to-speech (gTTS for Albanian, browser speech for Macedonian) | `tts.py` |
+| Repair steps | State-space search: BFS and A* (admissible heuristic) | `planner.py`, `scenarios.json` |
 
-## Architecture
-Photo → Image classifier → Decision tree (questions) → Problem state → Planner (BFS/A*) → Tools + Steps → Annotated image
+## Current results
+| Measure | Result |
+|---|---|
+| Text recognition, TF-IDF (leave-one-out, 40 sq/mk sentences) | **98%** (keyword baseline: 88%) |
+| A* vs BFS, states expanded (cabinet door) | **13 vs 38**, same plan length |
+| Unsafe actions in generated plans | 0 (tested) |
+| Automated tests | 18 passing |
+| Photo classifier | waiting for the photo dataset (30–50 photos per object) |
 
-## Scope (MVP)
-- 5 object types: sagging cabinet door, loose door handle, wobbly chair/table, drawer off its runners, loose hammer head
-- Text + image interface in Python; markers drawn on prepared reference images (not yet on the user's photo)
-- Unsafe repairs (electrical, gas, structural) are out of scope: the assistant tells the user to call a professional
+## Scope
+- Objects: door handle, cabinet door, chair/table (bolted or glued legs), drawer off its runners, wall shelf
+- Sections: Assistant, Tips & Tricks, Categories, Tools glossary (Albanian, Macedonian, English names)
+- Electrical, gas and electronics repairs are **out of scope**: the assistant gives safety information only
+  and tells the user to call a professional
+
+## Run
+```
+pip install -r requirements.txt
+set ANTHROPIC_API_KEY=sk-ant-...        # optional (Windows; use export on Mac/Linux): vision, OCR, manual answers
+streamlit run app.py
+python planner.py                      # BFS vs A* on every scenario
+python text_recognizer.py              # TF-IDF accuracy and errors
+python -m unittest discover tests      # automated tests
+pip install torch torchvision && python train_classifier.py --data dataset   # once photos exist
+```
 
 ## Files
-- `scenarios.json` — repair knowledge base: actions, preconditions, effects, safety rules (draft, being verified)
-- `PEAS.md` — agent and task-environment specification
-- `DECISIONS.md` — decision log
+- `app.py` — Streamlit app (language switch sq/mk)
+- `planner.py` — BFS, A*, step checker (supervisor)
+- `text_recognizer.py` — TF-IDF recognizer and keyword baseline
+- `train_classifier.py`, `photo_classifier.py` — photo classifier (training and use)
+- `scenarios.json` — repair knowledge base: actions, preconditions, effects, safety rules (sq/mk/en)
+- `knowledge/` — decision trees, tips, tools, categories, example sentences
+- `PEAS.md`, `DECISIONS.md`, `ROADMAP.md` — specification, decision log, plan
 
-## Status
-- Week 3: PEAS, architecture, 3 draft repair scenarios
-- Project direction changed from a game to a photo-based assistant (approved by the professor)
-- Next (Week 4, Milestone 2): photo dataset, ~30–50 photos per object type
+All repair content is a draft and is being verified against manufacturer instructions.
+AI assistance is documented in the AI Use Log.
