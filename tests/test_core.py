@@ -117,6 +117,19 @@ class AppTests(unittest.TestCase):
         self.assertTrue(at.info)  # replacement advice, no repair steps
         self.assertFalse(at.checkbox)
 
+    def test_pasted_manual_is_shown_with_the_steps(self):
+        from streamlit.testing.v1 import AppTest
+        at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+        manual = ("MALM chest of drawers\n\nDrawer runners: tilt the drawer 20 degrees, put the rear wheels "
+                  "into the runner channel until it clicks, then push the drawer in.\n\n"
+                  "Safety: fix the chest to the wall with the safety brackets.")
+        at.text_area[0].set_value(manual).run()
+        at.chat_input[0].set_value("Sirtari ka dalë nga shinat").run()
+        for key in ["pre_0_no", "pre_1_no", "ans_3_0"]:
+            at.button(key=key).click().run()
+        self.assertFalse(at.exception)
+        self.assertTrue(any("runner" in m.value for m in at.markdown))
+
     def test_three_to_five_questions(self):
         at = self.run_app("sq", "Karrigia lëkundet kur ulem")
         for key in ["pre_0_no", "pre_1_no", "ans_2_0", "tools_0"]:
@@ -207,3 +220,34 @@ class LlmRequestTests(unittest.TestCase):
         content = sent["body"]["messages"][0]["content"]
         self.assertEqual(content[0]["type"], "image")
         self.assertEqual(sent["body"]["output_config"]["format"]["type"], "json_schema")
+
+    def test_manual_guidance_sends_pdf_and_image_blocks(self):
+        import anthropic
+        import httpx2
+
+        import llm
+        sent = {}
+
+        def handler(request):
+            sent["body"] = json.loads(request.content)
+            return httpx2.Response(200, json={
+                "id": "msg", "type": "message", "role": "assistant", "model": llm.MODEL,
+                "content": [{"type": "text", "text": "1. Fut rrotat në shinë (faqja 4)."}],
+                "stop_reason": "end_turn", "stop_sequence": None,
+                "usage": {"input_tokens": 1, "output_tokens": 1}})
+
+        original = llm._client
+        llm._client = lambda key=None: anthropic.Anthropic(
+            api_key="test", http_client=anthropic.DefaultHttpxClient(transport=httpx2.MockTransport(handler)))
+        try:
+            out = llm.manual_guidance([
+                {"kind": "pdf", "data": b"%PDF-1.4", "media_type": "application/pdf", "name": "malm.pdf"},
+                {"kind": "image", "data": b"img", "media_type": "image/png", "name": "page.png"},
+                {"kind": "text", "data": "Schublade einsetzen", "media_type": "text/plain", "name": "de"},
+            ], "sirtari ka dalë", "Ktheje sirtarin në shina", "sq")
+        finally:
+            llm._client = original
+        self.assertIn("faqja 4", out)
+        types = [b["type"] for b in sent["body"]["messages"][0]["content"]]
+        self.assertEqual(types, ["document", "image", "text", "text"])
+        self.assertIn("ANY language", sent["body"]["messages"][0]["content"][-1]["text"])

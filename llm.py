@@ -115,3 +115,42 @@ def answer_from_manual(question: str, passages: list[dict], lang: str, api_key: 
         messages=[{"role": "user", "content": prompt}],
     )
     return _text(response)
+
+
+def manual_guidance(manual: list[dict], problem: str, repair_title: str, lang: str,
+                    api_key: str | None = None) -> str:
+    """Read the user's own manual (PDF, photo of a page, or pasted text, in ANY language) and
+    return the parts relevant to this repair, translated into the user's language.
+
+    manual: list of {"kind": "pdf" | "image" | "text", "data": bytes | str, "media_type": str, "name": str}
+    """
+    content = []
+    for m in manual:
+        if m["kind"] == "pdf":
+            content.append({"type": "document", "title": m["name"], "source": {
+                "type": "base64", "media_type": "application/pdf",
+                "data": base64.standard_b64encode(m["data"]).decode()}})
+        elif m["kind"] == "image":
+            content.append({"type": "image", "source": {
+                "type": "base64", "media_type": m["media_type"],
+                "data": base64.standard_b64encode(m["data"]).decode()}})
+        else:
+            content.append({"type": "text", "text": f"<manual name=\"{m['name']}\">\n{m['data']}\n</manual>"})
+    content.append({"type": "text", "text": (
+        "Above is the manufacturer's manual of the user's furniture (PDF, photo of a page, or text). "
+        "It may be written in ANY language.\n"
+        f"The user's problem: {problem}\nThe repair we planned: {repair_title}\n\n"
+        f"Write in {LANG_NAME[lang]}, translating from the manual's language:\n"
+        "1. Model name / article number if the manual shows it.\n"
+        "2. The manual's steps and part codes that matter for this repair, as short numbered steps.\n"
+        "3. The manual's safety warnings for this repair.\n"
+        "For each point, say where it is in the manual (page, section or step number). "
+        "Use only what the manual says. If the manual does not cover this problem, say so in one sentence."
+    )})
+    response = _create(
+        _client(api_key),
+        max_tokens=4000,
+        output_config={"effort": "medium"},
+        messages=[{"role": "user", "content": content}],
+    )
+    return _text(response)

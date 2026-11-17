@@ -47,7 +47,7 @@ UI = {
         "source": "Burimi", "mode_assistant": "Asistenti jep hapa riparimi.", "mode_info": "Vetëm këshilla dhe informacion.",
         "search": "Kërko mjet", "done": "Bravo! Riparimi përfundoi. ✅", "listen": "Dëgjo hapat",
         "vision": "Analiza e fotos (vision model)", "brand": "Marka", "model_": "Modeli", "ocr": "Teksti i lexuar nga foto (OCR)",
-        "damage": "Dëmtimi", "auto": "✔ nga teksti/foto, pa pyetur", "manual_found": "U gjet manuali në bibliotekë", "manual_link": "Kërko manualin zyrtar të këtij modeli", "no_key": "Pa API key: foto nuk analizohet nga vision model; njohja bëhet nga teksti.",
+        "damage": "Dëmtimi", "manual_add": "📘 Shto manualin (opsionale): PDF, foto e faqes ose tekst, në çdo gjuhë", "manual_paste": "…ose ngjit tekstin e manualit këtu", "from_manual": "📘 Nga manuali yt", "manual_no_ai": "Pa API key: tregoj pjesët më të ngjashme të manualit, por vetëm nëse manuali ka tekst dhe është në të njëjtën gjuhë me pyetjen.", "auto": "✔ nga teksti/foto, pa pyetur", "manual_found": "U gjet manuali në bibliotekë", "manual_link": "Kërko manualin zyrtar të këtij modeli", "no_key": "Pa API key: foto nuk analizohet nga vision model; njohja bëhet nga teksti.",
         "agg": "Bashkimi i rezultateve", "text_src": "Teksti (TF-IDF)", "photo_src": "Foto", "combined": "Rezultati",
         "man_intro": "Ngarko manualin PDF të pajisjes (opsionale) dhe bëj një pyetje. Kërkimi bëhet në udhëzuesit e aplikacionit dhe në manualet që ngarkon.",
         "man_upload": "Manuale (PDF, TXT, MD)", "man_q": "Pyetja jote", "man_answer": "Përgjigja e AI-së", "man_passages": "Pjesët e gjetura në manuale",
@@ -71,7 +71,7 @@ UI = {
         "source": "Извор", "mode_assistant": "Асистентот дава чекори за поправка.", "mode_info": "Само совети и информации.",
         "search": "Барај алат", "done": "Браво! Поправката е завршена. ✅", "listen": "Слушни ги чекорите",
         "vision": "Анализа на фотографијата (vision модел)", "brand": "Марка", "model_": "Модел", "ocr": "Текст прочитан од фотографијата (OCR)",
-        "damage": "Оштетување", "auto": "✔ од текстот/фотографијата, без прашање", "manual_found": "Пронајден прирачник во библиотеката", "manual_link": "Барај го официјалниот прирачник за овој модел", "no_key": "Без API клуч: фотографијата не се анализира со vision модел; препознавањето е од текстот.",
+        "damage": "Оштетување", "manual_add": "📘 Додај прирачник (опционално): PDF, фотографија од страница или текст, на кој било јазик", "manual_paste": "…или залепи го текстот на прирачникот тука", "from_manual": "📘 Од твојот прирачник", "manual_no_ai": "Без API клуч: ги прикажувам најсличните делови од прирачникот, но само ако има текст и е на истиот јазик како прашањето.", "auto": "✔ од текстот/фотографијата, без прашање", "manual_found": "Пронајден прирачник во библиотеката", "manual_link": "Барај го официјалниот прирачник за овој модел", "no_key": "Без API клуч: фотографијата не се анализира со vision модел; препознавањето е од текстот.",
         "agg": "Спојување на резултатите", "text_src": "Текст (TF-IDF)", "photo_src": "Фотографија", "combined": "Резултат",
         "man_intro": "Прикачи PDF прирачник за уредот (опционално) и постави прашање. Пребарувањето е во упатствата на апликацијата и во прирачниците што ги прикачуваш.",
         "man_upload": "Прирачници (PDF, TXT, MD)", "man_q": "Твоето прашање", "man_answer": "Одговор од AI", "man_passages": "Пронајдени делови од прирачниците",
@@ -117,8 +117,35 @@ def tools_for(plan, lang):
     return [TOOLS[i]["name"][lang] + f" ({TOOLS[i]['en']})" for i in ids if i in TOOLS]
 
 
+def show_manual_guidance(manual, problem, sc, lang):
+    """LLM reads the manual in any language; without a key, TF-IDF retrieval on its text."""
+    if AI_ON:
+        key = ("manual", problem, sc["id"], lang, tuple(m["name"] for m in manual))
+        if key not in st.session_state:
+            try:
+                st.session_state[key] = llm.manual_guidance(manual, problem, field(sc, "title", lang), lang, api_key)
+            except Exception as e:  # noqa: BLE001
+                st.warning(f"{U['error']}: {e}")
+                return
+        st.write(st.session_state[key])
+        return
+    st.caption(U["manual_no_ai"])
+    chunks = []
+    for m in manual:
+        if m["kind"] == "pdf":
+            chunks += manuals.pdf_chunks(m["data"], m["name"])
+        elif m["kind"] == "text":
+            chunks += [{"source": m["name"], "text": p.strip()} for p in re.split(r"\n\s*\n", m["data"]) if len(p.strip()) > 40]
+    if chunks:
+        query = " ".join([problem, sc.get("title_sq", ""), sc.get("title_mk", ""), sc.get("title", "")]
+                         + [a.get("label", "") for a in sc["actions"]])
+        for p in manuals.ManualIndex(chunks).search(query, k=3, min_score=0.0):
+            with st.expander(p["source"]):
+                st.write(p["text"])
+
+
 def reset():
-    for k in ("stage", "obj", "node", "path", "text", "pre", "tools_ok", "vision", "agg", "ai_error"):
+    for k in ("stage", "obj", "node", "path", "text", "pre", "tools_ok", "vision", "agg", "ai_error", "manual"):
         st.session_state.pop(k, None)
 
 
@@ -163,11 +190,21 @@ with tab_ai:
         with st.chat_message("assistant"):
             st.write(U["describe"])
         photo = st.file_uploader(U["photo"], type=["jpg", "jpeg", "png", "webp"])
+        manual_files = st.file_uploader(U["manual_add"], type=["pdf", "jpg", "jpeg", "png", "webp", "txt", "md"],
+                                        accept_multiple_files=True)
+        manual_text = st.text_area(U["manual_paste"], height=80)
         if photo and not AI_ON and not photo_classifier.available():
             st.caption(U["no_key"])
         text = st.chat_input(U["placeholder"])
         if text:
             ss.text, ss.path, ss.pre, ss.tools_ok = text, [], 0, None
+            ss.manual = []
+            for f in manual_files or []:
+                kind = "pdf" if f.type == "application/pdf" else "image" if f.type.startswith("image/") else "text"
+                data = f.getvalue() if kind != "text" else f.getvalue().decode("utf-8", errors="ignore")
+                ss.manual.append({"kind": kind, "data": data, "media_type": f.type, "name": f.name})
+            if manual_text.strip():
+                ss.manual.append({"kind": "text", "data": manual_text, "media_type": "text/plain", "name": "tekst"})
             photo_pred, ss.vision, ss.ai_error = None, None, None
             if photo is not None:
                 if AI_ON:
@@ -330,6 +367,9 @@ with tab_ai:
                         st.write(U["dont"])
                         for a in warnings:
                             st.warning(f"{field(a, 'label', lang)}: {field(a, 'safety_msg', lang)}")
+                    if ss.get("manual"):
+                        st.subheader(U["from_manual"])
+                        show_manual_guidance(ss.manual, ss.text, sc, lang)
                     with st.expander(U["why"]):
                         st.write(U["why_text"].format(nq=len(ss.path), na_auto=sum(1 for p in ss.path if p[2] == "auto"), sid=sc["id"], n=len(plan), na=n_astar, nb=n_bfs))
         st.button(U["other"], on_click=reset)

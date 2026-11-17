@@ -54,6 +54,10 @@ Pyetjet bëhen me **butona**, sepse çdo përgjigje duhet të çojë saktë te n
 2. **Generation**: LLM-ja shkruan përgjigjen **vetëm** nga ato pjesë dhe i citon [1], [2]. Nëse pjesët nuk e përmbajnë përgjigjen, e thotë hapur.
 Kështu përgjigjet bazohen te manuali i vërtetë i pajisjes, jo te "kujtesa" e modelit.
 
+**Manuali i përdoruesit, në çdo gjuhë:** te Asistenti, poshtë fotos së objektit, përdoruesi mund të shtojë manualin si PDF, si foto të faqes ose si tekst. LLM-ja multimodale e lexon direkt (edhe PDF të skanuar ose foto), kupton çdo gjuhë (anglisht, gjermanisht, suedisht…) dhe nxjerr vetëm hapat, kodet e pjesëve dhe paralajmërimet që lidhen me riparimin, **të përkthyera** në shqip/maqedonisht dhe me vendin në manual (faqja, hapi). Pa API key, sistemi bën kërkim TF-IDF në tekstin e manualit, që punon vetëm kur manuali dhe pyetja janë në të njëjtën gjuhë.
+
+**Pyetjet që AI-ja i di vetë:** para çdo pyetjeje, sistemi kontrollon nëse përgjigja është tashmë te teksti ose te fotoja. Nëse po, përgjigjet vetë dhe e shënon me "✔ nga teksti/foto", që përdoruesi ta kontrollojë.
+
 ### 9. Text-to-speech
 Hapat lexohen me zë: shqip me gTTS (Google Text-to-Speech), maqedonisht me zërin e browser-it (gTTS nuk ka maqedonisht).
 
