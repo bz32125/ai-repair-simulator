@@ -46,10 +46,10 @@ UI = {
         "source": "Burimi", "mode_assistant": "Asistenti jep hapa riparimi.", "mode_info": "Vetëm këshilla dhe informacion.",
         "search": "Kërko mjet", "done": "Bravo! Riparimi përfundoi. ✅", "listen": "Dëgjo hapat",
         "vision": "Analiza e fotos (vision model)", "brand": "Marka", "model_": "Modeli", "ocr": "Teksti i lexuar nga foto (OCR)",
-        "damage": "Dëmtimi", "manual_link": "Kërko manualin zyrtar të këtij modeli", "no_key": "Pa API key: foto nuk analizohet nga vision model; njohja bëhet nga teksti.",
+        "damage": "Dëmtimi", "manual_found": "U gjet manuali në bibliotekë", "manual_link": "Kërko manualin zyrtar të këtij modeli", "no_key": "Pa API key: foto nuk analizohet nga vision model; njohja bëhet nga teksti.",
         "agg": "Bashkimi i rezultateve", "text_src": "Teksti (TF-IDF)", "photo_src": "Foto", "combined": "Rezultati",
         "man_intro": "Ngarko manualin PDF të pajisjes (opsionale) dhe bëj një pyetje. Kërkimi bëhet në udhëzuesit e aplikacionit dhe në manualet që ngarkon.",
-        "man_upload": "Manuale PDF", "man_q": "Pyetja jote", "man_answer": "Përgjigja e AI-së", "man_passages": "Pjesët e gjetura në manuale",
+        "man_upload": "Manuale (PDF, TXT, MD)", "man_q": "Pyetja jote", "man_answer": "Përgjigja e AI-së", "man_passages": "Pjesët e gjetura në manuale",
         "man_none": "Nuk u gjet asgjë e lidhur. Provo me fjalë të tjera ose ngarko manualin.",
         "settings": "Cilësimet e AI-së", "key": "Anthropic API key (opsionale)", "method": "Metoda e bashkimit",
         "methods": {"weighted": "Mesatare e peshuar", "product": "Prodhim (Naive Bayes)", "vote": "Votim i shumicës"},
@@ -70,10 +70,10 @@ UI = {
         "source": "Извор", "mode_assistant": "Асистентот дава чекори за поправка.", "mode_info": "Само совети и информации.",
         "search": "Барај алат", "done": "Браво! Поправката е завршена. ✅", "listen": "Слушни ги чекорите",
         "vision": "Анализа на фотографијата (vision модел)", "brand": "Марка", "model_": "Модел", "ocr": "Текст прочитан од фотографијата (OCR)",
-        "damage": "Оштетување", "manual_link": "Барај го официјалниот прирачник за овој модел", "no_key": "Без API клуч: фотографијата не се анализира со vision модел; препознавањето е од текстот.",
+        "damage": "Оштетување", "manual_found": "Пронајден прирачник во библиотеката", "manual_link": "Барај го официјалниот прирачник за овој модел", "no_key": "Без API клуч: фотографијата не се анализира со vision модел; препознавањето е од текстот.",
         "agg": "Спојување на резултатите", "text_src": "Текст (TF-IDF)", "photo_src": "Фотографија", "combined": "Резултат",
         "man_intro": "Прикачи PDF прирачник за уредот (опционално) и постави прашање. Пребарувањето е во упатствата на апликацијата и во прирачниците што ги прикачуваш.",
-        "man_upload": "PDF прирачници", "man_q": "Твоето прашање", "man_answer": "Одговор од AI", "man_passages": "Пронајдени делови од прирачниците",
+        "man_upload": "Прирачници (PDF, TXT, MD)", "man_q": "Твоето прашање", "man_answer": "Одговор од AI", "man_passages": "Пронајдени делови од прирачниците",
         "man_none": "Ништо поврзано не е пронајдено. Пробај со други зборови или прикачи прирачник.",
         "settings": "Поставки за AI", "key": "Anthropic API клуч (опционално)", "method": "Метод на спојување",
         "methods": {"weighted": "Пондериран просек", "product": "Производ (Naive Bayes)", "vote": "Мнозинско гласање"},
@@ -223,6 +223,14 @@ with tab_ai:
                     st.write(f"{U['brand']}: {v['brand'] or '–'} · {U['model_']}: {v['model'] or '–'}")
                     st.write(f"{U['ocr']}: {v['ocr_text'] or '–'}")
                     st.write(f"{U['damage']}: {v['damage'] or '–'}")
+                    lib = manuals.library_chunks()
+                    found = manuals.match_manuals(lib, v["ocr_text"], v["brand"], v["model"])
+                    if found:
+                        st.success(f"📘 {U['manual_found']}: {', '.join(found)}")
+                        own = [c for c in lib if c.get("file") in found]
+                        for p in manuals.ManualIndex(own).search(ss.text + " " + obj["name"]["sq"], k=2, min_score=0.0):
+                            st.caption(p["source"])
+                            st.write(p["text"])
                     url = manuals.manufacturer_search_url(v["brand"], v["model"])
                     if url:
                         st.link_button(U["manual_link"], url)
@@ -304,11 +312,16 @@ with tab_ai:
 # ---------------------------------------------------------------- manuals (RAG)
 with tab_man:
     st.write(U["man_intro"])
-    pdfs = st.file_uploader(U["man_upload"], type=["pdf"], accept_multiple_files=True)
-    chunks = manuals.builtin_chunks()
+    pdfs = st.file_uploader(U["man_upload"], type=["pdf", "txt", "md"], accept_multiple_files=True)
+    chunks = manuals.builtin_chunks() + manuals.library_chunks()
     for f in pdfs or []:
         try:
-            chunks += manuals.pdf_chunks(f.getvalue(), f.name)
+            if f.name.lower().endswith(".pdf"):
+                chunks += manuals.pdf_chunks(f.getvalue(), f.name)
+            else:
+                text = f.getvalue().decode("utf-8", errors="ignore")
+                chunks += [{"source": f.name, "lang": "any", "text": p.strip()}
+                           for p in re.split(r"\n\s*\n", text) if len(p.strip()) > 40]
         except Exception as e:  # noqa: BLE001
             st.warning(f"{f.name}: {e}")
     question = st.text_input(U["man_q"])

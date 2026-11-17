@@ -20,6 +20,7 @@ from urllib.parse import quote_plus
 from text_recognizer import TfidfRecognizer
 
 ROOT = Path(__file__).parent
+LIBRARY = ROOT / "manuals"
 CHUNK_CHARS = 900
 
 
@@ -50,6 +51,49 @@ def pdf_chunks(file_bytes: bytes, name: str) -> list[dict]:
             if len(piece) > 40:
                 chunks.append({"source": f"{name}, faqja {page_no}", "lang": "any", "text": piece})
     return chunks
+
+
+def _models_line(text: str) -> list[str]:
+    m = re.search(r"models:\s*(.+?)(?:-->|$)", text, re.IGNORECASE | re.MULTILINE)
+    return [x.strip() for x in m.group(1).split(",") if x.strip()] if m else []
+
+
+def library_chunks(folder: Path = LIBRARY) -> list[dict]:
+    """Manuals saved in the manuals/ folder (.md, .txt split by sections; .pdf by pages)."""
+    chunks = []
+    if not folder.exists():
+        return chunks
+    for path in sorted(folder.iterdir()):
+        if path.name.lower() == "readme.md":
+            continue
+        if path.suffix.lower() == ".pdf":
+            new = pdf_chunks(path.read_bytes(), path.name)
+            models = []
+        elif path.suffix.lower() in (".md", ".txt"):
+            text = path.read_text(encoding="utf-8")
+            models = _models_line(text)
+            body = re.sub(r"<!--.*?-->", "", text, flags=re.S).strip()
+            title = body.splitlines()[0].lstrip("# ").strip() if body else path.stem
+            parts = [p.strip() for p in re.split(r"\n(?=#+ )|\n\s*\n", body) if len(p.strip()) > 40]
+            new = [{"source": f"{path.name}, {p.splitlines()[0].lstrip('# ').strip()[:60]}", "lang": "any",
+                    "text": f"{title}\n{p}"} for p in parts]
+        else:
+            continue
+        for c in new:
+            c["file"], c["models"] = path.name, models
+        chunks += new
+    return chunks
+
+
+def match_manuals(chunks: list[dict], *texts: str) -> list[str]:
+    """Manual files whose brand/model/article number appears in the OCR text, brand or model."""
+    seen = " ".join(t for t in texts if t).lower()
+    files = []
+    for c in chunks:
+        ids = c.get("models", [])[1:]  # first entry is the brand: a brand alone is too general
+        if c.get("file") and c["file"] not in files and any(m.lower() in seen for m in ids):
+            files.append(c["file"])
+    return files
 
 
 class ManualIndex:

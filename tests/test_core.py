@@ -143,6 +143,13 @@ class ManualTests(unittest.TestCase):
         self.assertIn(SCEN["drawer_runners"]["title_sq"], ix.search("sirtari ka dalë nga shinat")[0]["source"])
         self.assertIn(SCEN["door_handle"]["title_mk"], ix.search("кваката се клати")[0]["source"])
 
+    def test_library_manual_found_from_ocr(self):
+        lib = manuals.library_chunks()
+        self.assertEqual(manuals.match_manuals(lib, "IKEA MALM Art. 403.604.65"), ["ikea_malm_403.604.65_sample.md"])
+        self.assertEqual(manuals.match_manuals(lib, "IKEA"), [])  # brand alone is not enough
+        top = manuals.ManualIndex(manuals.builtin_chunks() + lib).search("sirtari fërkon anash dhe nuk mbyllet drejt")
+        self.assertEqual(top[0]["file"], "ikea_malm_403.604.65_sample.md")
+
     def test_manual_link_only_with_brand_or_model(self):
         self.assertIsNone(manuals.manufacturer_search_url("", ""))
         self.assertIn("MALM", manuals.manufacturer_search_url("IKEA", "MALM"))
