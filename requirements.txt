@@ -1,4 +1,7 @@
 streamlit>=1.36
+anthropic        # vision model, OCR and LLM answers (optional: needs ANTHROPIC_API_KEY)
+gTTS             # text-to-speech in Albanian (needs internet)
+pypdf            # reading uploaded PDF manuals
 # photo classifier (optional until the dataset exists):
 # torch
 # torchvision

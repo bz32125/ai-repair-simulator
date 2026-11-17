@@ -11,17 +11,24 @@ instead of a large language model: every decision can be shown and tested.
 
 ## How it works
 ```
-text + photo ─► safety gate (rules) ─► object recognition ─► decision tree ─► tools (rules) ─► A* planner ─► steps
-                 electrical/gas →       photo: CNN (transfer    clarifying       from the        STRIPS-style
-                 refuse + refer         learning, MobileNetV3)  questions as     planned         actions with
-                                        text: TF-IDF + cosine   buttons          actions         preconditions
+text + photo ─► safety gate ─► recognition ─────────► aggregation ─► 3-5 questions ─► tools ─► A* planner ─► steps ─► speech
+                (rules)        text: TF-IDF            weighted avg /   (decision tree,  (rules)  (BFS for              (TTS)
+                               photo: vision LLM + OCR product / vote   buttons)                  comparison)
+                               or CNN (MobileNetV3)
+manuals: built-in guides + uploaded PDFs ─► TF-IDF retrieval ─► LLM answer with citations (RAG)
 ```
+A detailed explanation of every AI step is in [docs/how_ai_works_sq.md](docs/how_ai_works_sq.md) (Albanian)
+and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown in the app.
 | Component | AI technique | File |
 |---|---|---|
 | Safety gate | Rule-based system | `app.py`, `knowledge/diagnosis.json` |
 | Text recognition | TF-IDF + cosine similarity (from scratch), keyword baseline | `text_recognizer.py` |
 | Photo recognition | CNN, transfer learning (MobileNetV3-Small) | `train_classifier.py`, `photo_classifier.py` |
-| Clarifying questions | Decision tree | `knowledge/diagnosis.json` |
+| Photo understanding, OCR, brand/model | Vision LLM with a JSON schema (structured output) | `llm.py` |
+| Combining photo + text | Aggregation: weighted average, product (Naive Bayes), majority vote | `aggregate.py` |
+| Clarifying questions | Decision tree, 3–5 questions | `knowledge/diagnosis.json` |
+| Manual search | RAG: TF-IDF retrieval over guides and uploaded PDFs + LLM answer with citations | `manuals.py`, `llm.py` |
+| Reading steps aloud | Text-to-speech (gTTS for Albanian, browser speech for Macedonian) | `tts.py` |
 | Repair steps | State-space search: BFS and A* (admissible heuristic) | `planner.py`, `scenarios.json` |
 
 ## Current results
@@ -30,6 +37,7 @@ text + photo ─► safety gate (rules) ─► object recognition ─► decisio
 | Text recognition, TF-IDF (leave-one-out, 40 sq/mk sentences) | **98%** (keyword baseline: 88%) |
 | A* vs BFS, states expanded (cabinet door) | **13 vs 38**, same plan length |
 | Unsafe actions in generated plans | 0 (tested) |
+| Automated tests | 18 passing |
 | Photo classifier | waiting for the photo dataset (30–50 photos per object) |
 
 ## Scope
@@ -41,6 +49,7 @@ text + photo ─► safety gate (rules) ─► object recognition ─► decisio
 ## Run
 ```
 pip install -r requirements.txt
+set ANTHROPIC_API_KEY=sk-ant-...        # optional (Windows; use export on Mac/Linux): vision, OCR, manual answers
 streamlit run app.py
 python planner.py                      # BFS vs A* on every scenario
 python text_recognizer.py              # TF-IDF accuracy and errors

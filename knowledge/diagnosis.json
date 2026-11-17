@@ -329,5 +329,58 @@
   "unsafe_message": {
     "sq": "Kjo duket si punë me rrymë ose gaz. Asistenti nuk jep udhëzime për këto riparime, sepse një gabim mund të jetë vdekjeprurës. Fik siguresën ose valvulën e gazit dhe thirr një profesionist. Shih seksionin 'Elektrike' për këshilla sigurie.",
     "mk": "Ова изгледа како работа со струја или гас. Асистентот не дава упатства за вакви поправки, бидејќи грешка може да биде смртоносна. Исклучи го осигурувачот или вентилот за гас и повикај професионалец. Види го делот „Електрика“ за совети за безбедност."
-  }
+  },
+  "pre_questions": [
+    {
+      "id": "safety",
+      "q": {
+        "sq": "A lidhet riparimi me rrymë, gaz ose ujë (tela, priza, tuba)?",
+        "mk": "Дали поправката е поврзана со струја, гас или вода (жици, штекери, цевки)?"
+      },
+      "yes": {
+        "unsafe": true
+      }
+    },
+    {
+      "id": "broken",
+      "q": {
+        "sq": "A ka pjesë të thyera, të çara ose që mungojnë?",
+        "mk": "Дали има скршени, напукнати или изгубени делови?"
+      },
+      "yes": {
+        "refer": {
+          "sq": "Pjesët e thyera zakonisht duhen ndërruar. Bëj një foto të pjesës dhe kërkoje te dyqani i mobiljeve ose te prodhuesi (shih tab-in Manualet). Nëse pjesa mban peshë (këmbë, mentesha), mos e përdor objektin derisa ta ndërrosh.",
+          "mk": "Скршените делови обично треба да се заменат. Фотографирај го делот и побарај го во продавница за мебел или кај производителот (види го делот Прирачници). Ако делот носи тежина (ногарка, шарка), не го користи предметот додека не го замениш."
+        }
+      }
+    }
+  ],
+  "tools_question": {
+    "sq": "A i ke këto mjete?",
+    "mk": "Дали ги имаш овие алати?"
+  },
+  "tools_answers": [
+    {
+      "sq": "Po, i kam të gjitha",
+      "mk": "Да, ги имам сите"
+    },
+    {
+      "sq": "Jo, më mungon diçka",
+      "mk": "Не, ми недостасува нешто"
+    }
+  ],
+  "tools_missing": {
+    "sq": "Mjetet që mungojnë i gjen në çdo dyqan hekurishtesh (ferramentë). Shih tab-in 'Mjetet' për emrat në shqip, maqedonisht dhe anglisht.",
+    "mk": "Алатите што недостасуваат ги има во секоја железарија. Види го делот „Алати“ за имињата на македонски, албански и англиски."
+  },
+  "yes_no": [
+    {
+      "sq": "Po",
+      "mk": "Да"
+    },
+    {
+      "sq": "Jo",
+      "mk": "Не"
+    }
+  ]
 }
