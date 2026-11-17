@@ -251,3 +251,37 @@ class LlmRequestTests(unittest.TestCase):
         types = [b["type"] for b in sent["body"]["messages"][0]["content"]]
         self.assertEqual(types, ["document", "image", "text", "text"])
         self.assertIn("ANY language", sent["body"]["messages"][0]["content"][-1]["text"])
+
+
+class LlmQuestionTests(unittest.TestCase):
+    def test_answer_questions_keeps_only_valid_answers(self):
+        import anthropic
+        import httpx2
+
+        import llm
+        reply = {"answers": [
+            {"id": "safety", "option": 1, "reason": "photo: wooden drawer, no wires"},
+            {"id": "broken", "option": -1, "reason": "not visible"},
+            {"id": "Çfarë ndodh me sirtarin?", "option": 0, "reason": "photo: wheels out of runner"},
+            {"id": "unknown", "option": 0, "reason": "x"},
+            {"id": "Shinat janë të plota, pa pjesë të thyera?", "option": 7, "reason": "x"}]}
+
+        def handler(request):
+            return httpx2.Response(200, json={
+                "id": "msg", "type": "message", "role": "assistant", "model": llm.MODEL,
+                "content": [{"type": "text", "text": json.dumps(reply)}],
+                "stop_reason": "end_turn", "stop_sequence": None,
+                "usage": {"input_tokens": 1, "output_tokens": 1}})
+
+        original = llm._client
+        llm._client = lambda key=None: anthropic.Anthropic(
+            api_key="test", http_client=anthropic.DefaultHttpxClient(transport=httpx2.MockTransport(handler)))
+        qs = [{"id": "safety", "question": "q", "options": ["Po", "Jo"]},
+              {"id": "broken", "question": "q", "options": ["Po", "Jo"]},
+              {"id": "Çfarë ndodh me sirtarin?", "question": "q", "options": ["a", "b"]},
+              {"id": "Shinat janë të plota, pa pjesë të thyera?", "question": "q", "options": ["Po", "Jo"]}]
+        try:
+            out = llm.answer_questions(qs, "problem me fjoken", (b"img", "image/png"), None)
+        finally:
+            llm._client = original
+        self.assertEqual(out, {"safety": 1, "Çfarë ndodh me sirtarin?": 0})

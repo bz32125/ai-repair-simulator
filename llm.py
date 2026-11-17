@@ -154,3 +154,58 @@ def manual_guidance(manual: list[dict], problem: str, repair_title: str, lang: s
         messages=[{"role": "user", "content": content}],
     )
     return _text(response)
+
+
+ANSWERS_SCHEMA = {
+    "type": "object",
+    "properties": {"answers": {"type": "array", "items": {
+        "type": "object",
+        "properties": {"id": {"type": "string"}, "option": {"type": "integer"}, "reason": {"type": "string"}},
+        "required": ["id", "option", "reason"], "additionalProperties": False}}},
+    "required": ["answers"],
+    "additionalProperties": False,
+}
+
+
+def answer_questions(questions: list[dict], description: str, photo: tuple[bytes, str] | None,
+                     manual: list[dict] | None, api_key: str | None = None) -> dict[str, int]:
+    """Answer the decision-tree questions from all the evidence (text, photo, manual).
+
+    questions: [{"id": str, "question": str, "options": [str, ...]}]
+    Returns {id: option index} only for questions the evidence clearly answers.
+    """
+    content = []
+    if photo:
+        content.append({"type": "image", "source": {"type": "base64", "media_type": photo[1],
+                                                    "data": base64.standard_b64encode(photo[0]).decode()}})
+    for m in manual or []:
+        if m["kind"] == "image":
+            content.append({"type": "image", "source": {"type": "base64", "media_type": m["media_type"],
+                                                        "data": base64.standard_b64encode(m["data"]).decode()}})
+        elif m["kind"] == "pdf":
+            content.append({"type": "document", "title": m["name"], "source": {
+                "type": "base64", "media_type": "application/pdf",
+                "data": base64.standard_b64encode(m["data"]).decode()}})
+        else:
+            content.append({"type": "text", "text": f"<manual>\n{m['data']}\n</manual>"})
+    qs = "\n".join(f"- id={q['id']}: {q['question']} options: "
+                   + "; ".join(f"{i}={o}" for i, o in enumerate(q["options"])) for q in questions)
+    content.append({"type": "text", "text": (
+        "You help a home-repair assistant skip questions the user has already answered. The user described "
+        "a problem (in Albanian or Macedonian, maybe dialect) and may have added a photo of the broken object "
+        "and the product manual (any language).\n"
+        f"User's description: {description}\n\nQuestions:\n{qs}\n\n"
+        "For each question give the option index ONLY if the description, the photo or the manual clearly "
+        "answers it; otherwise option = -1. Never guess. For safety questions (electricity/gas/water) answer "
+        "'no' only if the photo clearly shows furniture with no wiring, pipes or appliances. "
+        "reason = one short phrase naming the evidence (e.g. 'photo: wheels out of the runner').")})
+    response = _create(
+        _client(api_key),
+        max_tokens=3000,
+        output_config={"effort": "low", "format": {"type": "json_schema", "schema": ANSWERS_SCHEMA}},
+        messages=[{"role": "user", "content": content}],
+    )
+    data = json.loads(_text(response))
+    valid = {q["id"]: len(q["options"]) for q in questions}
+    return {a["id"]: a["option"] for a in data["answers"]
+            if a["id"] in valid and 0 <= a["option"] < valid[a["id"]]}

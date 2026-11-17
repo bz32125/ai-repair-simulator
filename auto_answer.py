@@ -53,3 +53,13 @@ def choose_answer(text: str, answers: list[dict], lang: str, min_overlap: int = 
     if overlaps[best] >= min_overlap and all(overlaps[best] > o for o in others):
         return best
     return None
+
+
+def question_nodes(tree: dict) -> list[dict]:
+    """All question nodes of a decision tree (depth-first)."""
+    if "q" not in tree:
+        return []
+    out = [tree]
+    for a in tree["answers"]:
+        out += question_nodes(a["next"])
+    return out

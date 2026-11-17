@@ -145,7 +145,7 @@ def show_manual_guidance(manual, problem, sc, lang):
 
 
 def reset():
-    for k in ("stage", "obj", "node", "path", "text", "pre", "tools_ok", "vision", "agg", "ai_error", "manual"):
+    for k in ("stage", "obj", "node", "path", "text", "pre", "tools_ok", "vision", "agg", "ai_error", "manual", "photo", "llm_answers"):
         st.session_state.pop(k, None)
 
 
@@ -205,7 +205,8 @@ with tab_ai:
                 ss.manual.append({"kind": kind, "data": data, "media_type": f.type, "name": f.name})
             if manual_text.strip():
                 ss.manual.append({"kind": "text", "data": manual_text, "media_type": "text/plain", "name": "tekst"})
-            photo_pred, ss.vision, ss.ai_error = None, None, None
+            photo_pred, ss.vision, ss.ai_error, ss.llm_answers = None, None, None, None
+            ss.photo = (photo.getvalue(), photo.type) if photo is not None else None
             if photo is not None:
                 if AI_ON:
                     try:
@@ -282,22 +283,41 @@ with tab_ai:
                                      U["photo_src"]: (round(agg["photo"][1], 2) if agg["photo"] and agg["photo"][0] == o else None),
                                      U["combined"]: round(agg["combined"][o], 2)})
                     st.dataframe(rows, hide_index=True)
-            # answer automatically every question the text/photo already answers
+            # answer automatically every question the text/photo/manual already answers
             evidence = ss.text + " " + ((ss.get("vision") or {}).get("damage") or "")
+            if AI_ON and ss.get("llm_answers") is None and (ss.get("photo") or ss.get("manual")):
+                qs = [{"id": pq["id"], "question": pq["q"]["sq"], "options": [y["sq"] for y in DIAG["yes_no"]]} for pq in PRE]
+                qs += [{"id": n["q"]["sq"], "question": n["q"]["sq"], "options": [a["text"]["sq"] for a in n["answers"]]}
+                       for n in auto_answer.question_nodes(obj["tree"])]
+                try:
+                    with st.spinner("…"):
+                        ss.llm_answers = llm.answer_questions(qs, ss.text, ss.get("photo"), ss.get("manual"), api_key)
+                except Exception as e:  # noqa: BLE001
+                    ss.llm_answers = {}
+                    st.warning(f"{U['error']}: {e}")
+            llm_ans = ss.get("llm_answers") or {}
             while True:
                 if ss.pre < len(PRE):
                     pq = PRE[ss.pre]
-                    guess = (auto_answer.safety(ss.get("vision")) if pq["id"] == "safety"
-                             else auto_answer.broken(ss.text, ss.get("vision")))
+                    if pq["id"] in llm_ans:
+                        guess = "yes" if llm_ans[pq["id"]] == 0 else "no"
+                    else:
+                        guess = (auto_answer.safety(ss.get("vision")) if pq["id"] == "safety"
+                                 else auto_answer.broken(ss.text, ss.get("vision")))
                     if guess is None:
                         break
+                    if guess == "yes" and pq["yes"].get("unsafe"):
+                        ss.stage = "unsafe"
+                        st.rerun()
                     ss.path.append((pq["q"], DIAG["yes_no"][0 if guess == "yes" else 1], "auto"))
                     if guess == "yes":
                         ss.node, ss.pre = pq["yes"], len(PRE)
                     else:
                         ss.pre += 1
                 elif "q" in ss.node:
-                    i = auto_answer.choose_answer(evidence, ss.node["answers"], lang)
+                    i = llm_ans.get(ss.node["q"]["sq"])
+                    if i is None:
+                        i = auto_answer.choose_answer(evidence, ss.node["answers"], lang)
                     if i is None:
                         break
                     ss.path.append((ss.node["q"], ss.node["answers"][i]["text"], "auto"))
