@@ -10,9 +10,12 @@ Pipeline:
                -> aggregation (weighted average / product / majority vote)
                -> 3-5 clarifying questions (decision tree)
                -> tools (rules) -> repair steps (A*, BFS for comparison) -> text-to-speech
+  voice assistant: microphone -> speech-to-text (Whisper / Google) -> same pipeline;
+                   questions and steps are read aloud with a male voice (Edge TTS Ilir / Aleksandar)
   manuals: built-in guides + uploaded PDFs -> TF-IDF retrieval -> LLM answer with citations (RAG)
 """
 import json
+import os
 import re
 from pathlib import Path
 
@@ -27,6 +30,7 @@ import photo_classifier
 import planner
 import text_recognizer
 import tts
+import voice
 
 ROOT = Path(__file__).parent
 KB = ROOT / "knowledge"
@@ -55,6 +59,16 @@ UI = {
         "settings": "Cilësimet e AI-së", "key": "Anthropic API key (opsionale)", "method": "Metoda e bashkimit",
         "methods": {"weighted": "Mesatare e peshuar", "product": "Prodhim (Naive Bayes)", "vote": "Votim i shumicës"},
         "ai_on": "Vision + LLM: aktiv", "ai_off": "Vision + LLM: joaktiv (vetëm algoritmet lokale)", "error": "Gabim nga AI",
+        "voice": "🎙️ Asistenti me zë", "voice_on": "Fol dhe dëgjo (zë burri)", "autoplay": "Lexoji pyetjet me zë automatikisht",
+        "openai_key": "OpenAI API key (opsionale, për Whisper)", "stt_whisper": "Njohja e zërit: Whisper (OpenAI)",
+        "stt_google": "Njohja e zërit: Google Web Speech (falas, pa key)",
+        "mic_describe": "🎙️ Fol: përshkruaje problemin", "mic_answer": "🎙️ Përgjigju me zë",
+        "heard": "🎙️ Dëgjova", "not_understood": "Nuk të kuptova mirë. Provo përsëri, ose shtyp një nga butonat.",
+        "silence": "Nuk dëgjova asgjë. Fol pak më afër mikrofonit dhe provo përsëri.",
+        "stt_error": "Njohja e zërit nuk punoi (duhet internet)", "voice_edge": "🔊 Zëri: {v} (mashkull, Edge TTS)",
+        "voice_gtts": "🔊 Edge TTS nuk u arrit; po përdor gTTS (zë femre).",
+        "voice_browser": "🔊 Asnjë shërbim zëri nuk u arrit; përdor zërin e browser-it.",
+        "say": "Dëgjo", "found_obj": "E gjeta: {obj}.", "steps_intro": "Ja hapat.", "q_tools_say": "A i ke këto mjete: {t}?",
     },
     "mk": {
         "subtitle": "Помош чекор по чекор за едноставни поправки во домот. Прототип.",
@@ -79,6 +93,16 @@ UI = {
         "settings": "Поставки за AI", "key": "Anthropic API клуч (опционално)", "method": "Метод на спојување",
         "methods": {"weighted": "Пондериран просек", "product": "Производ (Naive Bayes)", "vote": "Мнозинско гласање"},
         "ai_on": "Vision + LLM: активно", "ai_off": "Vision + LLM: неактивно (само локални алгоритми)", "error": "Грешка од AI",
+        "voice": "🎙️ Гласовен асистент", "voice_on": "Зборувај и слушај (машки глас)", "autoplay": "Читај ги прашањата гласно автоматски",
+        "openai_key": "OpenAI API клуч (опционално, за Whisper)", "stt_whisper": "Препознавање говор: Whisper (OpenAI)",
+        "stt_google": "Препознавање говор: Google Web Speech (бесплатно, без клуч)",
+        "mic_describe": "🎙️ Зборувај: опиши го проблемот", "mic_answer": "🎙️ Одговори со глас",
+        "heard": "🎙️ Слушнав", "not_understood": "Не те разбрав добро. Пробај повторно или притисни едно од копчињата.",
+        "silence": "Не слушнав ништо. Зборувај поблиску до микрофонот и пробај повторно.",
+        "stt_error": "Препознавањето говор не работеше (потребен е интернет)", "voice_edge": "🔊 Глас: {v} (машки, Edge TTS)",
+        "voice_gtts": "🔊 Edge TTS не е достапен; нема резервен глас за македонски.",
+        "voice_browser": "🔊 Ниеден говорен сервис не е достапен; се користи гласот на прелистувачот.",
+        "say": "Слушни", "found_obj": "Го најдов: {obj}.", "steps_intro": "Еве ги чекорите.", "q_tools_say": "Дали ги имаш овие алати: {t}?",
     },
 }
 
@@ -145,26 +169,92 @@ def show_manual_guidance(manual, problem, sc, lang):
 
 
 def reset():
-    for k in ("stage", "obj", "node", "path", "text", "pre", "tools_ok", "vision", "agg", "ai_error", "manual", "photo", "llm_answers"):
+    for k in ("stage", "obj", "node", "path", "text", "pre", "tools_ok", "vision", "agg", "ai_error", "manual", "photo", "llm_answers",
+              "heard", "voice_miss", "spoken"):
         st.session_state.pop(k, None)
 
 
 @st.cache_data(show_spinner=False)
+def _speech_cached(text, lang):
+    audio, engine = tts.synthesize(text, lang, "male")
+    if audio is None:
+        raise RuntimeError("no TTS engine")  # exceptions are not cached, so we retry next time
+    return audio, engine
+
+
 def speech_mp3(text, lang):
-    return tts.mp3(text, lang)
+    try:
+        return _speech_cached(text, lang)
+    except RuntimeError:
+        return None, None
 
 
-def speak(text, lang, label):
-    """gTTS audio when available, otherwise the browser's own speech engine."""
-    audio = speech_mp3(text, lang)
+def speak(text, lang, label, autoplay=False):
+    """Male voice (Edge TTS) when available, then gTTS, then the browser's own speech engine.
+
+    autoplay plays a text only the first time it is shown, so a rerun does not repeat it.
+    """
+    audio, engine = speech_mp3(text, lang)
     if audio:
-        st.audio(audio, format="audio/mp3")
+        spoken = st.session_state.setdefault("spoken", set())
+        play = autoplay and VOICE_ON and AUTOPLAY and (lang, text) not in spoken
+        spoken.add((lang, text))
+        st.audio(audio, format="audio/mp3", autoplay=play)
+        st.session_state.voice_engine = engine
         return
-    html = tts.browser_speech_html(text, lang, label)  # built from our own step texts only
+    st.session_state.voice_engine = "browser"
+    html = tts.browser_speech_html(text, lang, label)  # built from our own texts and the user's own words only
     if hasattr(st, "iframe"):
         st.iframe(html, height=50)
     else:
         components.html(html, height=50)
+
+
+def listen(label, key):
+    """Microphone widget -> text. Returns the new transcript once per recording, else None."""
+    if not VOICE_ON or not hasattr(st, "audio_input"):
+        return None
+    rec = st.audio_input(label, key=key)
+    if rec is None:
+        return None
+    wav = rec.getvalue()
+    done = st.session_state.setdefault("heard_ids", set())
+    rid = (key, hash(wav))
+    if rid in done:
+        return None
+    done.add(rid)
+    try:
+        with st.spinner("🎙️ …"):
+            text, _ = voice.transcribe(wav, lang, openai_key)
+    except Exception as e:  # noqa: BLE001
+        st.warning(f"{U['stt_error']}: {e}")
+        return None
+    if not text:
+        st.session_state.voice_miss = U["silence"]
+        return None
+    return text
+
+
+def voice_pick(key, options, yes_no=False):
+    """Mic for one clarifying question: index of the option the user said, or None."""
+    heard = listen(U["mic_answer"], key)
+    if heard is None:
+        return None
+    st.session_state.heard = heard
+    i = voice.match_option(heard, options, lang, yes_no)
+    st.session_state.voice_miss = None if i is not None else f"«{heard}». {U['not_understood']}"
+    return i
+
+
+def voice_feedback():
+    """Show (and say) what the microphone heard, or that it did not understand."""
+    ss_ = st.session_state
+    if ss_.get("voice_miss"):
+        st.info(ss_.voice_miss)
+        speak(U["not_understood"], lang, U["say"], autoplay=True)
+        ss_.voice_miss = None
+    elif ss_.get("heard"):
+        st.caption(f"{U['heard']}: «{ss_.heard}»")
 
 
 # ---------------------------------------------------------------- sidebar
@@ -176,6 +266,20 @@ api_key = st.sidebar.text_input(U["key"], type="password") or None
 method = st.sidebar.selectbox(U["method"], list(U["methods"]), format_func=lambda m: U["methods"][m])
 AI_ON = llm.available(api_key)
 st.sidebar.caption(U["ai_on"] if AI_ON else U["ai_off"])
+st.sidebar.subheader(U["voice"])
+VOICE_ON = st.sidebar.toggle(U["voice_on"], value=True)
+AUTOPLAY = st.sidebar.toggle(U["autoplay"], value=True, disabled=not VOICE_ON)
+openai_key = (st.sidebar.text_input(U["openai_key"], type="password", disabled=not VOICE_ON)
+              or os.environ.get("OPENAI_API_KEY") or None)
+if VOICE_ON:
+    st.sidebar.caption(U["stt_whisper"] if openai_key else U["stt_google"])
+    eng = st.session_state.get("voice_engine")
+    if eng == "gtts":
+        st.sidebar.caption(U["voice_gtts"])
+    elif eng == "browser":
+        st.sidebar.caption(U["voice_browser"])
+    else:
+        st.sidebar.caption(U["voice_edge"].format(v=tts.edge_voice(lang).split("-")[2].replace("Neural", "")))
 
 st.title("🔧 AI Repair Assistant")
 st.caption(U["subtitle"])
@@ -196,6 +300,10 @@ with tab_ai:
         if photo and not AI_ON and not photo_classifier.available():
             st.caption(U["no_key"])
         text = st.chat_input(U["placeholder"])
+        spoken_text = listen(U["mic_describe"], "mic_describe")
+        if spoken_text:
+            text, ss.heard = spoken_text, spoken_text
+        voice_feedback()
         if text:
             ss.text, ss.path, ss.pre, ss.tools_ok = text, [], 0, None
             ss.manual = []
@@ -241,15 +349,26 @@ with tab_ai:
     if ss.stage == "unsafe":
         with st.chat_message("assistant"):
             st.error(DIAG["unsafe_message"][lang])
+            speak(DIAG["unsafe_message"][lang], lang, U["say"], autoplay=True)
         st.button(U["restart"], on_click=reset)
 
     elif ss.stage == "pick":
         with st.chat_message("assistant"):
             st.write(U["unknown"])
-            for oid, obj in DIAG["objects"].items():
+            names = [o["name"][lang] for o in DIAG["objects"].values()]
+            speak(U["unknown"] + " " + ", ".join(names) + "?", lang, U["say"], autoplay=True)
+            picked = None
+            for i, (oid, obj) in enumerate(DIAG["objects"].items()):
                 if st.button(obj["name"][lang], key=f"pick_{oid}"):
-                    ss.obj, ss.node, ss.stage = oid, obj["tree"], "diagnose"
-                    st.rerun()
+                    picked = i
+            vi = voice_pick("mic_pick", names)
+            voice_feedback()
+            if picked is None:
+                picked = vi
+            if picked is not None:
+                oid = OBJECTS[picked]
+                ss.obj, ss.node, ss.stage = oid, DIAG["objects"][oid]["tree"], "diagnose"
+                st.rerun()
 
     elif ss.stage == "diagnose":
         obj = DIAG["objects"][ss.obj]
@@ -328,32 +447,50 @@ with tab_ai:
             for q, a, src in ss.path:
                 tag = f" _({U['auto']})_" if src == "auto" else ""
                 st.write(f"• {q[lang]} → *{a[lang]}*{tag}")
+            voice_feedback()
 
+            # the first spoken question also says which object was recognized
+            intro = "" if any(p[2] is None for p in ss.path) else U["found_obj"].format(obj=obj["name"][lang]) + " "
             node = ss.node
             if ss.pre < len(PRE):  # general questions first: safety, broken parts
                 pq = PRE[ss.pre]
                 st.write(f"**{pq['q'][lang]}**")
+                speak(intro + pq["q"][lang], lang, U["say"], autoplay=True)
                 c1, c2 = st.columns(2)
-                if c1.button(DIAG["yes_no"][0][lang], key=f"pre_{ss.pre}_yes"):
+                choice = 0 if c1.button(DIAG["yes_no"][0][lang], key=f"pre_{ss.pre}_yes") else None
+                if c2.button(DIAG["yes_no"][1][lang], key=f"pre_{ss.pre}_no"):
+                    choice = 1
+                if choice is None:
+                    choice = voice_pick(f"mic_pre_{ss.pre}", [y[lang] for y in DIAG["yes_no"]], yes_no=True)
+                if choice == 0:
                     ss.path.append((pq["q"], DIAG["yes_no"][0], None))
                     if pq["yes"].get("unsafe"):
                         ss.stage = "unsafe"
                     else:
                         ss.node, ss.pre = pq["yes"], len(PRE)
                     st.rerun()
-                if c2.button(DIAG["yes_no"][1][lang], key=f"pre_{ss.pre}_no"):
+                if choice == 1:
                     ss.path.append((pq["q"], DIAG["yes_no"][1], None))
                     ss.pre += 1
                     st.rerun()
             elif "q" in node:
                 st.write(f"**{node['q'][lang]}**")
+                opts = [a["text"][lang] for a in node["answers"]]
+                speak(intro + node["q"][lang] + " " + "; ".join(opts) + "?", lang, U["say"], autoplay=True)
+                choice = None
                 for i, ans in enumerate(node["answers"]):
                     if st.button(ans["text"][lang], key=f"ans_{len(ss.path)}_{i}"):
-                        ss.path.append((node["q"], ans["text"], None))
-                        ss.node = ans["next"]
-                        st.rerun()
+                        choice = i
+                if choice is None:
+                    choice = voice_pick(f"mic_ans_{len(ss.path)}", opts)
+                if choice is not None:
+                    ans = node["answers"][choice]
+                    ss.path.append((node["q"], ans["text"], None))
+                    ss.node = ans["next"]
+                    st.rerun()
             elif "refer" in node:
                 st.info(node["refer"][lang])
+                speak(node["refer"][lang], lang, U["say"], autoplay=True)
             else:
                 sc = SCENARIOS[node["scenario"]]
                 plan, n_astar = planner.astar(sc)
@@ -363,11 +500,18 @@ with tab_ai:
                     st.write(f"**{DIAG['tools_question'][lang]}**")
                     for t in tool_names:
                         st.write(f"- {t}")
+                    short = ", ".join(t.split(" (")[0] for t in tool_names)
+                    speak(intro + U["q_tools_say"].format(t=short), lang, U["say"], autoplay=True)
+                    choice = None
                     for i, ans in enumerate(DIAG["tools_answers"]):
                         if st.button(ans[lang], key=f"tools_{i}"):
-                            ss.path.append((DIAG["tools_question"], ans, None))
-                            ss.tools_ok = i == 0
-                            st.rerun()
+                            choice = i
+                    if choice is None:
+                        choice = voice_pick("mic_tools", [a[lang] for a in DIAG["tools_answers"]], yes_no=True)
+                    if choice is not None:
+                        ss.path.append((DIAG["tools_question"], DIAG["tools_answers"][choice], None))
+                        ss.tools_ok = choice == 0
+                        st.rerun()
                 else:
                     st.success(field(sc, "title", lang))
                     if ss.tools_ok is False:
@@ -381,7 +525,8 @@ with tab_ai:
                     if all(done):
                         st.balloons()
                         st.success(U["done"])
-                    speak(field(sc, "title", lang) + ". " + ". ".join(labels), lang, U["listen"])
+                    numbered = " ".join(f"{i}. {lab}." for i, lab in enumerate(labels, 1))
+                    speak(f"{field(sc, 'title', lang)}. {U['steps_intro']} {numbered}", lang, U["listen"], autoplay=True)
                     warnings = [a for a in sc["actions"] if a.get("safety_msg")]
                     if warnings:
                         st.write(U["dont"])

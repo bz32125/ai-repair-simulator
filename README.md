@@ -16,6 +16,8 @@ text + photo ─► safety gate ─► recognition ─────────�
                                photo: vision LLM + OCR product / vote   buttons)                  comparison)
                                or CNN (MobileNetV3)
 manuals: built-in guides + uploaded PDFs ─► TF-IDF retrieval ─► LLM answer with citations (RAG)
+voice:   microphone ─► speech-to-text (Google free / Whisper) ─► same pipeline; answers matched to buttons
+         questions + steps ─► male neural voice (Edge TTS: sq-AL-Ilir, mk-MK-Aleksandar)
 ```
 A detailed explanation of every AI step is in [docs/how_ai_works_sq.md](docs/how_ai_works_sq.md) (Albanian)
 and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown in the app.
@@ -28,7 +30,8 @@ and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown 
 | Combining photo + text | Aggregation: weighted average, product (Naive Bayes), majority vote | `aggregate.py` |
 | Clarifying questions | Decision tree, 3–5 questions | `knowledge/diagnosis.json` |
 | Manual search | RAG: TF-IDF retrieval over guides and uploaded PDFs + LLM answer with citations | `manuals.py`, `llm.py` |
-| Reading steps aloud | Text-to-speech (gTTS for Albanian, browser speech for Macedonian) | `tts.py` |
+| Voice input | Speech-to-text: Google Web Speech (free, no key) or OpenAI Whisper (optional key); spoken answer → button by yes/no, ordinals and word overlap | `voice.py` |
+| Voice output | Text-to-speech, male neural voice: Edge TTS `sq-AL-IlirNeural` / `mk-MK-AleksandarNeural`; fallback gTTS (female, sq) and browser speech | `tts.py` |
 | Repair steps | State-space search: BFS and A* (admissible heuristic) | `planner.py`, `scenarios.json` |
 
 ## Current results
@@ -37,8 +40,14 @@ and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown 
 | Text recognition, TF-IDF (leave-one-out, 40 sq/mk sentences) | **98%** (keyword baseline: 88%) |
 | A* vs BFS, states expanded (cabinet door) | **13 vs 38**, same plan length |
 | Unsafe actions in generated plans | 0 (tested) |
-| Automated tests | 18 passing |
+| Automated tests | 30 passing |
 | Photo classifier | waiting for the photo dataset (30–50 photos per object) |
+
+## Voice assistant
+Turn on **🎙️ Asistenti me zë** in the sidebar (on by default). Press the microphone, describe the problem in
+Albanian (or Macedonian), and answer the clarifying questions by voice ("po", "jo", "e dyta", or in your own words);
+the assistant reads every question and the final steps aloud with a male voice. Buttons still work at any time.
+Voice needs internet (both speech services are online) and microphone permission in the browser.
 
 ## Scope
 - Objects: door handle, cabinet door, chair/table (bolted or glued legs), drawer off its runners, wall shelf
@@ -50,6 +59,7 @@ and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown 
 ```
 pip install -r requirements.txt
 set ANTHROPIC_API_KEY=sk-ant-...        # optional (Windows; use export on Mac/Linux): vision, OCR, manual answers
+set OPENAI_API_KEY=sk-...               # optional: Whisper speech-to-text (better Albanian); without it the free engine is used
 streamlit run app.py
 python planner.py                      # BFS vs A* on every scenario
 python text_recognizer.py              # TF-IDF accuracy and errors
@@ -58,7 +68,8 @@ pip install torch torchvision && python train_classifier.py --data dataset   # o
 ```
 
 ## Files
-- `app.py` — Streamlit app (language switch sq/mk)
+- `app.py` — Streamlit app (language switch sq/mk, voice assistant)
+- `voice.py`, `tts.py` — speech-to-text and the male text-to-speech voice
 - `planner.py` — BFS, A*, step checker (supervisor)
 - `text_recognizer.py` — TF-IDF recognizer and keyword baseline
 - `train_classifier.py`, `photo_classifier.py` — photo classifier (training and use)
