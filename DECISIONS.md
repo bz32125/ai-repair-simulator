@@ -25,3 +25,4 @@
 | 2026-11-17 | The app works without an API key (local algorithms only) | Offline demo, no cost, safety never depends on the LLM |
 | 2026-11-17 | Skip clarifying questions the text or photo already answers (shown with ✔ so the user can check) | Fewer questions; the AI asks only what it does not know |
 | 2026-11-17 | Let the user add the manual (PDF, photo of a page, or text) next to the object photo; the LLM reads any language and translates the relevant steps | Manuals are often in English/German/Swedish; TF-IDF alone cannot match across languages |
+| 2026-11-25 | Spoken answers are off by default; the user turns on "Përgjigju me zë" to hear them (microphone stays available) | The user asked that the system should not always answer with a voice, only when the user chooses it |

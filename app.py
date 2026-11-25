@@ -59,7 +59,7 @@ UI = {
         "settings": "Cilësimet e AI-së", "key": "Anthropic API key (opsionale)", "method": "Metoda e bashkimit",
         "methods": {"weighted": "Mesatare e peshuar", "product": "Prodhim (Naive Bayes)", "vote": "Votim i shumicës"},
         "ai_on": "Vision + LLM: aktiv", "ai_off": "Vision + LLM: joaktiv (vetëm algoritmet lokale)", "error": "Gabim nga AI",
-        "voice": "🎙️ Asistenti me zë", "voice_on": "Fol dhe dëgjo (zë burri)", "autoplay": "Lexoji pyetjet me zë automatikisht",
+        "voice": "🎙️ Asistenti me zë", "voice_on": "🎙️ Fol me mikrofon", "voice_out": "🔊 Përgjigju me zë (zë burri)", "autoplay": "Lexoji pyetjet me zë automatikisht",
         "openai_key": "OpenAI API key (opsionale, për Whisper)", "stt_whisper": "Njohja e zërit: Whisper (OpenAI)",
         "stt_google": "Njohja e zërit: Google Web Speech (falas, pa key)",
         "mic_describe": "🎙️ Fol: përshkruaje problemin", "mic_answer": "🎙️ Përgjigju me zë",
@@ -93,7 +93,7 @@ UI = {
         "settings": "Поставки за AI", "key": "Anthropic API клуч (опционално)", "method": "Метод на спојување",
         "methods": {"weighted": "Пондериран просек", "product": "Производ (Naive Bayes)", "vote": "Мнозинско гласање"},
         "ai_on": "Vision + LLM: активно", "ai_off": "Vision + LLM: неактивно (само локални алгоритми)", "error": "Грешка од AI",
-        "voice": "🎙️ Гласовен асистент", "voice_on": "Зборувај и слушај (машки глас)", "autoplay": "Читај ги прашањата гласно автоматски",
+        "voice": "🎙️ Гласовен асистент", "voice_on": "🎙️ Зборувај преку микрофон", "voice_out": "🔊 Одговори со глас (машки глас)", "autoplay": "Читај ги прашањата гласно автоматски",
         "openai_key": "OpenAI API клуч (опционално, за Whisper)", "stt_whisper": "Препознавање говор: Whisper (OpenAI)",
         "stt_google": "Препознавање говор: Google Web Speech (бесплатно, без клуч)",
         "mic_describe": "🎙️ Зборувај: опиши го проблемот", "mic_answer": "🎙️ Одговори со глас",
@@ -192,12 +192,15 @@ def speech_mp3(text, lang):
 def speak(text, lang, label, autoplay=False):
     """Male voice (Edge TTS) when available, then gTTS, then the browser's own speech engine.
 
+    Nothing is spoken or shown unless the user turned on voice answers in the sidebar.
     autoplay plays a text only the first time it is shown, so a rerun does not repeat it.
     """
+    if not VOICE_OUT:
+        return
     audio, engine = speech_mp3(text, lang)
     if audio:
         spoken = st.session_state.setdefault("spoken", set())
-        play = autoplay and VOICE_ON and AUTOPLAY and (lang, text) not in spoken
+        play = autoplay and AUTOPLAY and (lang, text) not in spoken
         spoken.add((lang, text))
         st.audio(audio, format="audio/mp3", autoplay=play)
         st.session_state.voice_engine = engine
@@ -267,12 +270,14 @@ method = st.sidebar.selectbox(U["method"], list(U["methods"]), format_func=lambd
 AI_ON = llm.available(api_key)
 st.sidebar.caption(U["ai_on"] if AI_ON else U["ai_off"])
 st.sidebar.subheader(U["voice"])
-VOICE_ON = st.sidebar.toggle(U["voice_on"], value=True)
-AUTOPLAY = st.sidebar.toggle(U["autoplay"], value=True, disabled=not VOICE_ON)
+VOICE_ON = st.sidebar.toggle(U["voice_on"], value=True)  # microphone input
+VOICE_OUT = st.sidebar.toggle(U["voice_out"], value=False)  # spoken answers only when the user chooses them
+AUTOPLAY = st.sidebar.toggle(U["autoplay"], value=True, disabled=not VOICE_OUT)
 openai_key = (st.sidebar.text_input(U["openai_key"], type="password", disabled=not VOICE_ON)
               or os.environ.get("OPENAI_API_KEY") or None)
 if VOICE_ON:
     st.sidebar.caption(U["stt_whisper"] if openai_key else U["stt_google"])
+if VOICE_OUT:
     eng = st.session_state.get("voice_engine")
     if eng == "gtts":
         st.sidebar.caption(U["voice_gtts"])

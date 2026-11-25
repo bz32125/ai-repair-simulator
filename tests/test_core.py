@@ -94,6 +94,20 @@ class AppTests(unittest.TestCase):
             at = self.run_app(lang, text)
             self.assertTrue(at.error, lang)
 
+    def test_no_spoken_answer_unless_user_turns_it_on(self):
+        import tts
+        calls, orig = [], tts.synthesize
+        tts.synthesize = lambda text, lang, gender="male": (calls.append(text), (b"ID3", "edge"))[1]
+        try:
+            at = self.run_app("sq", "teli i prizës nuk ka rrymë dhe del shkëndijë")
+            self.assertEqual(calls, [])  # voice answers are off by default
+            self.assertFalse([e for e in at.main if e.type == "audio"])
+            at.sidebar.toggle[1].set_value(True).run()  # "Përgjigju me zë"
+            self.assertFalse(at.exception)
+            self.assertTrue(calls)
+        finally:
+            tts.synthesize = orig
+
     def test_full_flow_macedonian(self):
         at = self.run_app("mk", "Фиоката излезе од шините")
         for key in ["pre_0_no", "pre_1_no", "ans_2_0", "ans_3_0"]:
