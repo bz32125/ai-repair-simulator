@@ -40,13 +40,14 @@ and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown 
 | Text recognition, TF-IDF (leave-one-out, 40 sq/mk sentences) | **98%** (keyword baseline: 88%) |
 | A* vs BFS, states expanded (cabinet door) | **13 vs 38**, same plan length |
 | Unsafe actions in generated plans | 0 (tested) |
-| Automated tests | 30 passing |
+| Automated tests | 31 passing |
 | Photo classifier | waiting for the photo dataset (30–50 photos per object) |
 
 ## Voice assistant
-Turn on **🎙️ Asistenti me zë** in the sidebar (on by default). Press the microphone, describe the problem in
-Albanian (or Macedonian), and answer the clarifying questions by voice ("po", "jo", "e dyta", or in your own words);
-the assistant reads every question and the final steps aloud with a male voice. Buttons still work at any time.
+The microphone (**🎙️ Fol me mikrofon**, on by default) lets the user describe the problem in Albanian (or Macedonian)
+and answer the clarifying questions by voice ("po", "jo", "e dyta", or in your own words).
+The assistant answers with a voice **only if the user turns on 🔊 Asistenti flet me zë** in the sidebar (off by default);
+then it reads every question and the final steps aloud with a male voice. Buttons still work at any time.
 Voice needs internet (both speech services are online) and microphone permission in the browser.
 
 ## Scope
