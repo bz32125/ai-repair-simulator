@@ -183,8 +183,73 @@ class ManualTests(unittest.TestCase):
         self.assertIn("MALM", manuals.manufacturer_search_url("IKEA", "MALM"))
 
 
-if __name__ == "__main__":
-    unittest.main()
+class VoiceTests(unittest.TestCase):
+    """Voice assistant: spoken answers -> buttons, STT fallback, male TTS voice."""
+
+    def setUp(self):
+        import voice
+        self.voice = voice
+        self.tree = json.loads((ROOT / "knowledge" / "diagnosis.json").read_text(encoding="utf-8"))
+
+    def test_yes_no(self):
+        v = self.voice
+        self.assertEqual(v.yes_no("Po"), 0)
+        self.assertEqual(v.yes_no("jo, nuk e kam"), 1)
+        self.assertEqual(v.yes_no("Да"), 0)
+        self.assertEqual(v.yes_no("не"), 1)
+        self.assertIsNone(v.yes_no("po... jo"))
+        self.assertIsNone(v.yes_no("ndoshta"))
+
+    def test_spoken_answer_matches_option(self):
+        node = self.tree["objects"]["door_handle"]["tree"]
+        opts = [a["text"]["sq"] for a in node["answers"]]
+        self.assertEqual(self.voice.match_option("lëviz dhe varet poshtë", opts, "sq"), 0)
+        self.assertEqual(self.voice.match_option("e dyta", opts, "sq"), 1)
+        self.assertEqual(self.voice.match_option("brava nuk mbyllet", opts, "sq"), 2)
+        self.assertIsNone(self.voice.match_option("", opts, "sq"))
+        self.assertIsNone(self.voice.match_option("banana", opts, "sq"))
+
+    def test_spoken_answer_macedonian(self):
+        node = self.tree["objects"]["door_handle"]["tree"]
+        opts = [a["text"]["mk"] for a in node["answers"]]
+        self.assertEqual(self.voice.match_option("првата", opts, "mk"), 0)
+
+    def test_whisper_falls_back_to_free_engine(self):
+        v = self.voice
+        orig = v.whisper, v.google_free
+        try:
+            v.whisper = lambda *a: (_ for _ in ()).throw(RuntimeError("401"))
+            v.google_free = lambda wav, lang: "sirtari ka dalë"
+            self.assertEqual(v.transcribe(b"wav", "sq", "sk-bad"), ("sirtari ka dalë", "google"))
+            self.assertEqual(v.transcribe(b"wav", "sq"), ("sirtari ka dalë", "google"))
+            v.google_free = lambda wav, lang: (_ for _ in ()).throw(OSError("offline"))
+            with self.assertRaises(v.SpeechError):
+                v.transcribe(b"wav", "sq")
+        finally:
+            v.whisper, v.google_free = orig
+
+    def test_male_voice_first_then_fallbacks(self):
+        import tts
+        self.assertEqual(tts.edge_voice("sq"), "sq-AL-IlirNeural")
+        self.assertEqual(tts.edge_voice("mk"), "mk-MK-AleksandarNeural")
+        orig = tts.edge_mp3, tts.gtts_mp3
+        try:
+            tts.edge_mp3 = lambda text, lang, gender="male": b"edge"
+            self.assertEqual(tts.synthesize("Hapi 1", "sq"), (b"edge", "sq-AL-IlirNeural"))
+            tts.edge_mp3 = lambda text, lang, gender="male": None
+            tts.gtts_mp3 = lambda text, lang: b"g" if lang == "sq" else None
+            self.assertEqual(tts.synthesize("Hapi 1", "sq"), (b"g", "gtts"))
+            self.assertEqual(tts.synthesize("Чекор 1", "mk"), (None, None))
+        finally:
+            tts.edge_mp3, tts.gtts_mp3 = orig
+
+    def test_app_has_microphone(self):
+        from streamlit.testing.v1 import AppTest
+        at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+        self.assertFalse(at.exception)
+        self.assertTrue(any(w.type == "audio_input" for w in at.main))
+
+
 
 
 class LlmRequestTests(unittest.TestCase):
@@ -285,3 +350,7 @@ class LlmQuestionTests(unittest.TestCase):
         finally:
             llm._client = original
         self.assertEqual(out, {"safety": 1, "Çfarë ndodh me sirtarin?": 0})
+
+
+if __name__ == "__main__":
+    unittest.main()

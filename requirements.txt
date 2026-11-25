@@ -1,6 +1,8 @@
-streamlit>=1.36
+streamlit>=1.40   # st.audio_input for the microphone
 anthropic        # vision model, OCR and LLM answers (optional: needs ANTHROPIC_API_KEY)
-gTTS             # text-to-speech in Albanian (needs internet)
+edge-tts         # male neural voice: sq-AL-IlirNeural, mk-MK-AleksandarNeural (free, needs internet)
+gTTS             # fallback text-to-speech in Albanian (female voice, needs internet)
+SpeechRecognition  # free speech-to-text (Google Web Speech, sq-AL / mk-MK); Whisper is used if OPENAI_API_KEY is set
 pypdf            # reading uploaded PDF manuals
 # photo classifier (optional until the dataset exists):
 # torch

@@ -19,6 +19,9 @@
 | 2026-11-17 | 3–5 clarifying questions: safety, broken parts, 1–2 object questions, tools | Professor's feedback; safety and part-replacement cases are caught early |
 | 2026-11-17 | Manuals with RAG: TF-IDF retrieval + LLM answer only from retrieved passages, with citations | Answers grounded in the real manual; retrieval works without an API key |
 | 2026-11-17 | Text-to-speech: gTTS for Albanian, browser speech for Macedonian | gTTS has no Macedonian voice |
+| 2026-11-25 | Voice assistant: male voice Edge TTS `sq-AL-IlirNeural` / `mk-MK-AleksandarNeural` | Only male neural voices that exist for Albanian/Macedonian; free, no key. gTTS is female; OpenAI TTS has no Albanian-native voice (English accent) |
+| 2026-11-25 | Speech-to-text: free Google Web Speech by default, Whisper only if an OpenAI key is given | Works without any extra key; Whisper is better for Albanian when a key exists |
+| 2026-11-25 | Spoken answers are matched to the existing buttons (yes/no, ordinals, word overlap); unclear → ask again | The decision tree stays exact; voice never picks a branch by guessing |
 | 2026-11-17 | The app works without an API key (local algorithms only) | Offline demo, no cost, safety never depends on the LLM |
 | 2026-11-17 | Skip clarifying questions the text or photo already answers (shown with ✔ so the user can check) | Fewer questions; the AI asks only what it does not know |
 | 2026-11-17 | Let the user add the manual (PDF, photo of a page, or text) next to the object photo; the LLM reads any language and translates the relevant steps | Manuals are often in English/German/Swedish; TF-IDF alone cannot match across languages |

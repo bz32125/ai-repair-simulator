@@ -12,7 +12,7 @@ Asistenti nuk është një chatbot i vetëm. Është një **pipeline** (varg hap
 | 6 | Mjetet | **Rregulla** | veprimet e planit → lista e mjeteve |
 | 7 | Hapat e riparimit | **Kërkim në hapësirën e gjendjeve: BFS dhe A\*** | gjendja fillestare + qëllimi → plani më i shkurtër dhe i sigurt |
 | 8 | Manualet | **RAG** (Retrieval-Augmented Generation): TF-IDF për kërkim + LLM për përgjigje | pyetja + manualet PDF → përgjigje me burime [1], [2] |
-| 9 | Zëri | **Text-to-speech** (gTTS / zëri i browser-it) | hapat → audio |
+| 9 | Zëri (asistenti me zë) | **Speech-to-text** (Google / Whisper) + **text-to-speech** me zë burri (Edge TTS, neural) | zëri → tekst; pyetjet dhe hapat → audio |
 
 ### 1. Porta e sigurisë
 Para çdo hapi tjetër kontrollohet nëse problemi lidhet me rrymë, gaz ose ujë: me fjalë kyçe në shqip dhe maqedonisht, dhe me fushën `involves_electricity_gas_or_water` që kthen vision model-i. Nëse po, asistenti **refuzon** dhe e drejton te profesionisti. Kjo pjesë është me rregulla dhe jo me ML, sepse këtu duam siguri 100%, jo "zakonisht të saktë".
@@ -58,8 +58,17 @@ Kështu përgjigjet bazohen te manuali i vërtetë i pajisjes, jo te "kujtesa" e
 
 **Pyetjet që AI-ja i di vetë:** para çdo pyetjeje, sistemi kontrollon nëse përgjigja është tashmë te teksti ose te fotoja. Nëse po, përgjigjet vetë dhe e shënon me "✔ nga teksti/foto", që përdoruesi ta kontrollojë.
 
-### 9. Text-to-speech
-Hapat lexohen me zë: shqip me gTTS (Google Text-to-Speech), maqedonisht me zërin e browser-it (gTTS nuk ka maqedonisht).
+### 9. Asistenti me zë
+**Hyrja me zë (speech-to-text, nga zëri në tekst):** përdoruesi shtyp mikrofonin dhe flet. Regjistrimi (WAV) kthehet në tekst:
+- pa asnjë key: **Google Web Speech** (falas, gjuha `sq-AL`), përmes paketës SpeechRecognition;
+- nëse jepet OpenAI API key: **Whisper** (`gpt-4o-transcribe`, rezervë `whisper-1`), që e njeh shqipen më mirë. Nëse Whisper dështon, kalon vetë te Google.
+Teksti futet në të njëjtën rrjedhë si teksti i shkruar (porta e sigurisë, TF-IDF, pema e vendimit).
+
+**Përgjigjet me zë te pyetjet:** fjalia e folur lidhet me një nga butonat: "po"/"jo" për pyetjet po/jo, numrat rendorë ("e dyta", "2"), ose mbivendosja e fjalëve me tekstin e butonit (të njëjtat rrënjë si te TF-IDF). Nëse nuk është e qartë cilin buton do, asistenti **nuk hamendëson**: thotë "Nuk të kuptova" dhe pyet përsëri, që pema e vendimit të mbetet e saktë.
+
+**Dalja me zë (text-to-speech), zë burri:** çdo pyetje sqaruese dhe hapat përfundimtarë lexohen automatikisht me zërin neural **Ilir** (`sq-AL-IlirNeural`, Microsoft Edge TTS, falas). Për maqedonisht: **Aleksandar** (`mk-MK-AleksandarNeural`). Këta janë të vetmit zëra neuralë meshkuj që ekzistojnë për këto gjuhë. Nëse shërbimi nuk arrihet, rezerva është gTTS (zë femre, vetëm shqip) dhe pastaj zëri i browser-it.
+
+**Kufizimet (thënë hapur):** të dy shërbimet e zërit kërkojnë internet; Google Web Speech është një shërbim falas jo-zyrtar dhe mund të gabojë me dialektet ose zhurmën; Ilir tingëllon i pastër për fjali të thjeshta, por ndonjëherë thekson gabim emrat e huaj të mjeteve.
 
 ### Pse kështu dhe jo vetëm një LLM?
 - Çdo hap **shpjegohet** dhe **matet** veç e veç (98% TF-IDF, 13 vs 38 gjendje te A\*).
