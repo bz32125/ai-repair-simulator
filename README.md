@@ -46,7 +46,7 @@ and [docs/how_ai_works_mk.md](docs/how_ai_works_mk.md) (Macedonian), also shown 
 ## Voice assistant
 The microphone (**🎙️ Fol me mikrofon**, on by default) lets the user describe the problem in Albanian (or Macedonian)
 and answer the clarifying questions by voice ("po", "jo", "e dyta", or in your own words).
-The assistant answers with a voice **only if the user turns on 🔊 Përgjigju me zë** in the sidebar (off by default);
+The assistant answers with a voice **only if the user turns on 🔊 Asistenti flet me zë** in the sidebar (off by default);
 then it reads every question and the final steps aloud with a male voice. Buttons still work at any time.
 Voice needs internet (both speech services are online) and microphone permission in the browser.
 

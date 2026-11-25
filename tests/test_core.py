@@ -102,7 +102,7 @@ class AppTests(unittest.TestCase):
             at = self.run_app("sq", "teli i prizës nuk ka rrymë dhe del shkëndijë")
             self.assertEqual(calls, [])  # voice answers are off by default
             self.assertFalse([e for e in at.main if e.type == "audio"])
-            at.sidebar.toggle[1].set_value(True).run()  # "Përgjigju me zë"
+            at.sidebar.toggle[1].set_value(True).run()  # "Asistenti flet me zë"
             self.assertFalse(at.exception)
             self.assertTrue(calls)
         finally:
